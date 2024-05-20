@@ -1,6 +1,6 @@
 # Rusty CHIP-8
 
-A Chip-8 VM written in Rust and SDL2.
+A CHIP-8 Interpreter written in Rust and SDL2.
 
 ## Building
 
