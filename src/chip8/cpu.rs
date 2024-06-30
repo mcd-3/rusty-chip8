@@ -20,8 +20,11 @@ pub struct CHIP8 {
 
 impl CHIP8 {
     pub fn new() -> Self {
-        // Load program data at 0x200
+        // Load font data to the interpreter area (registers 0x000 to 0x1FF)
         let mut ram: [u8; MEMORY] = [0; MEMORY];
+        for (index, font_char_piece) in FONT_SET.iter().enumerate() {
+            ram[index] = *font_char_piece;
+        }
 
         CHIP8 {
             ram,
