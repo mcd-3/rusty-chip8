@@ -16,7 +16,7 @@ mod chip8 {
 use gui::windows::base_window::SDLWindow;
 use drivers::rom_driver;
 use sdl2::event::Event;
-// use chip8::cpu::CHIP8;
+use chip8::cpu::CHIP8;
 
 fn main(){
     let main_window_title: String = String::from("CHIP-8 Emulator");
@@ -28,8 +28,8 @@ fn main(){
         println!("{:#04X}", byte);
     }
 
-    // let processor: CHIP8 = CHIP8::new();
-    // CHIP8::decrement_sound_timer();
+    let processor: CHIP8 = CHIP8::new();
+    processor.decrement_sound_timer();
 
     // Start the SDL2 application
     'running: loop {
