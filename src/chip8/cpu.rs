@@ -39,6 +39,17 @@ impl CHIP8 {
         }
     }
 
+    /// Loads ROM data to the interpreter
+    pub fn load_rom_data(&mut self, data: &[u8]) {
+        if data.len() > (MEMORY - PROGRAM_START) {
+            panic!("ERROR: Rom data exceeds {} bytes. Exiting...", MEMORY);
+        }
+
+        for (i, op_data) in data.iter().enumerate() {
+            self.ram[PROGRAM_START + i] = *op_data;
+        }
+    }
+
     pub fn decrement_sound_timer(&self) {
         println!("Printing font set...");
         println!("{}", FONT_SET[0]);

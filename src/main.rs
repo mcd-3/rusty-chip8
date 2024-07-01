@@ -28,8 +28,10 @@ fn main(){
         println!("{:#04X}", byte);
     }
 
-    let processor: CHIP8 = CHIP8::new();
-    processor.decrement_sound_timer();
+    let mut processor: CHIP8 = CHIP8::new();
+
+    processor.load_rom_data(&buffer);
+    // processor.decrement_sound_timer();
 
     // Start the SDL2 application
     'running: loop {
