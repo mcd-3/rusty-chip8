@@ -13,7 +13,7 @@ pub struct CHIP8 {
     vf: bool,
     delay_timer: u8,
     sound_timer: u8,
-    program_counter: u16,
+    pc: u16, //program counter
     stack_pointer: u8,
     stack: [u16; STACK_SIZE]
 }
@@ -33,7 +33,7 @@ impl CHIP8 {
             vf: false,
             delay_timer: 0,
             sound_timer: 0,
-            program_counter: 0,
+            pc: PROGRAM_START as u16,
             stack_pointer: 0,
             stack: [0; STACK_SIZE]
         }
@@ -48,12 +48,16 @@ impl CHIP8 {
         for (i, op_data) in data.iter().enumerate() {
             self.ram[PROGRAM_START + i] = *op_data;
         }
+
+        // let x = self.get_op_code();
+        // println!("{:#06X}", x);
     }
 
-    pub fn decrement_sound_timer(&self) {
-        println!("Printing font set...");
-        println!("{}", FONT_SET[0]);
-        println!("{}", self.delay_timer);
+    /// Get an operation code using the program counter
+    fn get_op_code(&self) -> u16 {
+        // Cast is required because u8 can't be indexed by u16
+        let addr: usize = self.pc as usize;
+        (self.ram[addr] as u16) << 8 | (self.ram[addr + 1] as u16)
     }
 
 }
