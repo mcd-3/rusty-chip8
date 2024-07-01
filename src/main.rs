@@ -11,6 +11,7 @@ mod drivers {
 mod chip8 {
     pub mod cpu;
     pub mod font;
+    pub mod op_code_variable_util;
 }
 
 use gui::windows::base_window::SDLWindow;

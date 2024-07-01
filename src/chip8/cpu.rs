@@ -50,7 +50,9 @@ impl CHIP8 {
         }
 
         // let x = self.get_op_code();
+        // let nnn = self.get_nnn(x);
         // println!("{:#06X}", x);
+        // println!("{:#06X}", nnn);
     }
 
     /// Get an operation code using the program counter
