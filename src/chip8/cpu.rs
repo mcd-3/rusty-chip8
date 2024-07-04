@@ -1,13 +1,18 @@
-use super::font::FONT_SET;
+use crate::chip8::op_code_variable_util::{get_byte, get_nibble, get_nnn, get_x, get_y};
+
+use super::{font::FONT_SET, op_code_variable_util::split_op_code};
 
 const MEMORY: usize = 4096;
 const V_REGISTER_COUNT: usize = 16;
 const STACK_SIZE: usize = 16;
 const PROGRAM_START: usize = 0x200;
+const VRAM_WIDTH: usize = 32;
+const VRAM_HEIGHT: usize = 64;
 
 // CHIP-8 Interpreter
 pub struct CHIP8 {
     ram: [u8; MEMORY],
+    vram: [u8; (VRAM_WIDTH * VRAM_HEIGHT)],
     v: [u8; V_REGISTER_COUNT],
     i: u16,
     vf: bool,
@@ -30,6 +35,7 @@ impl CHIP8 {
             ram,
             i: 0,
             v: [0; V_REGISTER_COUNT],
+            vram: [0; (VRAM_WIDTH * VRAM_HEIGHT)],
             vf: false,
             delay_timer: 0,
             sound_timer: 0,
@@ -48,11 +54,39 @@ impl CHIP8 {
         for (i, op_data) in data.iter().enumerate() {
             self.ram[PROGRAM_START + i] = *op_data;
         }
+    }
 
-        // let x = self.get_op_code();
-        // let nnn = self.get_nnn(x);
-        // println!("{:#06X}", x);
-        // println!("{:#06X}", nnn);
+    /// Get the current instruction and increase program counter to the next instruction
+    pub fn run_next_instruction(&mut self) {
+        let op_code: u16 = self.get_op_code();
+        println!("[INSTRUCTION]: {:#06X}", op_code);
+        match split_op_code(op_code) {
+            (0x0, 0x0, 0xE, 0x0) => { println!("0x00E0 not implemented yet..."); }
+            (0x6, _, _, _) => {
+                // Set Vx = kk
+                self.v[get_x(op_code) as usize] = get_byte(op_code) as u8;
+            }
+            (0x7, _, _, _) => {
+                // Set Vx = Vx + kk
+                let x: usize = get_x(op_code) as usize;
+                let kk: u8 = get_byte(op_code) as u8;
+                self.v[x] = self.v[x] + kk;
+            }
+            (0xA, _, _, _) => {
+                // Set I = nnn
+                self.i = get_nnn(op_code);
+            }
+            (0xD, _, _, _) => {
+                let x: u16 = get_x(op_code);
+                let y: u16 = get_y(op_code);
+                let nibble: u16 = get_nibble(op_code);
+                println!("{}, {}, {}", x, y, nibble);
+                println!("0xDxyn not implemented yet...");
+            }
+            _ => { println!("Instruction not supported by CHIP-8."); }
+        }
+
+        self.next_instruction();
     }
 
     /// Get an operation code using the program counter
@@ -62,4 +96,8 @@ impl CHIP8 {
         (self.ram[addr] as u16) << 8 | (self.ram[addr + 1] as u16)
     }
 
+    // Increases the program counter by 2 to go to the next program instruction
+    fn next_instruction(&mut self) {
+        self.pc += 2;
+    }
 }

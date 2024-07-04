@@ -22,3 +22,15 @@ pub fn get_y(op_code: u16) -> u16 {
 pub fn get_byte(op_code: u16) -> u16 {
     op_code & 0x00FF
 }
+
+/// Split an opcode into a 4 sized tuple of u8.
+pub fn split_op_code(op_code: u16) -> (u8, u8, u8, u8) {
+    let op_code_split: (u8, u8, u8, u8) = (
+        ((op_code & 0xF000) >> 12) as u8,
+        ((op_code & 0x0F00) >> 8) as u8,
+        ((op_code & 0x00F0) >> 4) as u8,
+        ((op_code & 0x000F)) as u8,
+    );
+
+    op_code_split
+}

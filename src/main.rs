@@ -33,6 +33,14 @@ fn main(){
 
     processor.load_rom_data(&buffer);
     // processor.decrement_sound_timer();
+    processor.run_next_instruction();
+    processor.run_next_instruction();
+    processor.run_next_instruction();
+    processor.run_next_instruction();
+    processor.run_next_instruction();
+    processor.run_next_instruction();
+    processor.run_next_instruction();
+    processor.run_next_instruction();
 
     // Start the SDL2 application
     'running: loop {
