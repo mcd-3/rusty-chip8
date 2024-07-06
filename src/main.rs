@@ -19,10 +19,11 @@ use drivers::graphics_driver::draw_to_screen;
 use gui::windows::base_window::SDLWindow;
 use drivers::rom_driver;
 use sdl2::event::Event;
-use sdl2::pixels::Color;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 use chip8::cpu::CHIP8;
+
+use std::{thread, time};
 
 fn main(){
     let main_window_title: String = String::from("CHIP-8 Emulator");
@@ -43,16 +44,15 @@ fn main(){
     let mut processor: CHIP8 = CHIP8::new();
 
     processor.load_rom_data(&buffer);
-    draw_to_screen(processor.vram, &mut canvas);
-    // processor.decrement_sound_timer();
-    processor.run_next_instruction();
-    processor.run_next_instruction();
-    processor.run_next_instruction();
-    processor.run_next_instruction();
-    processor.run_next_instruction();
-    processor.run_next_instruction();
-    processor.run_next_instruction();
-    processor.run_next_instruction();
+
+    for i in 0..64 {
+        processor.run_next_instruction();
+        draw_to_screen(processor.vram, &mut canvas);
+        let ten_millis = time::Duration::from_millis(100);
+        let now = time::Instant::now();
+
+        thread::sleep(ten_millis);
+    }
 
     // Start the SDL2 application
     'running: loop {

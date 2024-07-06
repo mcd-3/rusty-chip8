@@ -6,6 +6,7 @@ pub fn draw_to_screen(vram: [u8; 2048], canvas: &mut Canvas<Window>) {
     let left_margin: u32 = 10;
     let row_length: usize = 64;
 
+    canvas.set_draw_color(Color::RGB(0, 0, 0));
     canvas.clear();
 
     for i in 0..vram.len() {
@@ -26,11 +27,8 @@ pub fn draw_to_screen(vram: [u8; 2048], canvas: &mut Canvas<Window>) {
 
 fn get_color(pixel_bit: u8) -> Color {
     if pixel_bit == 1 {
-        // TODO: Reverse me
-        // Color::RGB(255, 255, 255)
-        Color::RGB(0, 0, 0)
-    } else {
         Color::RGB(255, 255, 255)
-        // Color::RGB(0, 0, 0)
+    } else {
+        Color::RGB(33, 33, 33)
     }
 }
