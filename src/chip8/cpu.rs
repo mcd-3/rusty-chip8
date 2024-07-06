@@ -12,7 +12,7 @@ const VRAM_HEIGHT: usize = 64;
 // CHIP-8 Interpreter
 pub struct CHIP8 {
     ram: [u8; MEMORY],
-    vram: [u8; (VRAM_WIDTH * VRAM_HEIGHT)],
+    pub vram: [u8; (VRAM_WIDTH * VRAM_HEIGHT)],
     v: [u8; V_REGISTER_COUNT],
     i: u16,
     vf: bool,
