@@ -19,6 +19,7 @@ use drivers::graphics_driver::draw_to_screen;
 use gui::windows::base_window::SDLWindow;
 use drivers::rom_driver;
 use sdl2::event::Event;
+use sdl2::pixels::Color;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 use chip8::cpu::CHIP8;
