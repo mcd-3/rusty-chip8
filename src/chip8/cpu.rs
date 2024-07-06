@@ -61,6 +61,14 @@ impl CHIP8 {
     pub fn run_next_instruction(&mut self) {
         let op_code: u16 = self.get_op_code();
         println!("[INSTRUCTION]: {:#06X}", op_code);
+
+        // TODO: Move this to a tick command
+        if self.delay_timer > 0 {
+            self.delay_timer -= 1
+        }
+
+
+
         match split_op_code(op_code) {
             (0x0, 0x0, 0xE, 0x0) => {
                 // 00E0 - CLS
@@ -89,6 +97,17 @@ impl CHIP8 {
                 }
                 
             }
+            (0x4, _, _, _) => {
+                // 4xkk - SNE Vx, byte
+                // Skip next instruction if Vx != kk
+                let x = get_x(op_code);
+                let kk = get_byte(op_code);
+                if self.v[x as usize] != kk as u8 {
+                    self.skip_instruction();
+                } else {
+                    self.next_instruction();
+                }
+            }
             (0x6, _, _, _) => {
                 // 6xkk - LD Vx, byte
                 // Set Vx = kk
@@ -109,6 +128,18 @@ impl CHIP8 {
                 let x = get_x(op_code);
                 let y = get_y(op_code);
                 self.v[x as usize] = self.v[y as usize];
+                self.next_instruction();
+            }
+            (0x8, _, _, 0x4) => {
+                // 8xy4 - ADD Vx, Vy
+                // Set Vx = Vx + Vy, set VF = carry
+                let x = get_x(op_code) as u16;
+                let y = get_y(op_code) as u16;
+                let total: usize = self.v[x as usize] as usize + self.v[y as usize] as usize;
+
+                self.v[0x0F] = if total > 0xFF { 1 } else { 0 };
+                self.v[x as usize] = (total & 0x00FF) as u8;
+
                 self.next_instruction();
             }
             (0xA, _, _, _) => {
@@ -148,6 +179,13 @@ impl CHIP8 {
                 } else {
                     self.v[0xF] = 0;
                 }
+                self.next_instruction();
+            }
+            (0xF, _, 0x1, 0x5) => {
+                // Fx15 - LD DT, Vx
+                // Set delay timer = Vx
+                let x: u16 = get_x(op_code);
+                self.delay_timer = self.v[x as usize];
                 self.next_instruction();
             }
             _ => { println!("Instruction not supported by CHIP-8."); }

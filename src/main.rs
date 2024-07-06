@@ -36,7 +36,7 @@ fn main(){
         .unwrap();
 
     // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/test.ch8"));
+    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/zero_demo.ch8"));
     for (i, byte) in buffer.iter().enumerate() {
         println!("{:#04X}", byte);
     }
@@ -45,17 +45,13 @@ fn main(){
 
     processor.load_rom_data(&buffer);
 
-    for i in 0..64 {
-        processor.run_next_instruction();
-        draw_to_screen(processor.vram, &mut canvas);
-        let ten_millis = time::Duration::from_millis(100);
-        let now = time::Instant::now();
-
-        thread::sleep(ten_millis);
-    }
-
     // Start the SDL2 application
     'running: loop {
+        processor.run_next_instruction();
+        draw_to_screen(processor.vram, &mut canvas);
+        let ten_millis = time::Duration::from_millis(1000 / 60);
+        let now = time::Instant::now();
+        thread::sleep(ten_millis);
         for event in window.event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } => break 'running,
