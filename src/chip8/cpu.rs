@@ -10,6 +10,7 @@ const STACK_SIZE: usize = 16;
 const PROGRAM_START: usize = 0x200;
 const VRAM_WIDTH: usize = 64;
 const VRAM_HEIGHT: usize = 32;
+const SPRITE_LENGTH: u8 = 5;
 
 // Sprites have 8 columns and can be up to 15 rows high
 const SPRITE_WIDTH: u16 = 8;
@@ -157,6 +158,23 @@ impl CHIP8 {
 
                 self.next_instruction();
             }
+            (0x8, _, _, 0x5) => {
+                // 8xy5 - SUB Vx, Vy
+                // Set Vx = Vx - Vy, set VF = NOT borrow
+                let x: usize = get_x(op_code) as usize;
+                let y: usize = get_y(op_code) as usize;
+                if self.v[x]  > self.v[y] {
+                    self.v[0xF] = 1;
+                } else {
+                    self.v[0xF] = 0;
+                }
+
+                // Prevent integer overflow errors
+                println!("Vx: {}", self.v[x]);
+                println!("Vy: {}", self.v[y]);
+                self.v[x] = self.v[y].wrapping_sub(self.v[x]);
+                self.next_instruction();
+            }
             (0x9, _, _, 0x0) => {
                 // 9xy0 - SNE Vx, Vy
                 // Skip next instruction if Vx != Vy.
@@ -230,13 +248,6 @@ impl CHIP8 {
                 println!("Instruction Ex9E not implemented!");
                 self.next_instruction();
             }
-            (0xF, _, 0x1, 0x5) => {
-                // Fx15 - LD DT, Vx
-                // Set delay timer = Vx
-                let x: u16 = get_x(op_code);
-                self.delay_timer = self.v[x as usize];
-                self.next_instruction();
-            }
             (0xF, _, 0x0, 0x7) => {
                 // Fx07 - LD Vx, DT
                 // Set Vx = delay timer value
@@ -244,11 +255,48 @@ impl CHIP8 {
                 self.v[x as usize] = self.delay_timer;
                 self.next_instruction();
             }
+            (0xF, _, 0x1, 0x5) => {
+                // Fx15 - LD DT, Vx
+                // Set delay timer = Vx
+                let x: u16 = get_x(op_code);
+                self.delay_timer = self.v[x as usize];
+                self.next_instruction();
+            }
             (0xF, _, 0x1, 0xE) => {
                 // Fx1E - ADD I, Vx
                 // Set I = I + Vx
                 let x: u16 = get_x(op_code);
                 self.i = self.i + self.v[x as usize] as u16;
+                self.next_instruction();
+            }
+            (0xF, _, 0x2, 0x9) => {
+                // Fx29 - LD F, Vx
+                // Set I = location of sprite for digit Vx.
+                // The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx.
+                //   See section 2.4, Display, for more information on the Chip-8 hexadecimal font.
+                let x: usize = get_x(op_code) as usize;
+                self.i = (self.v[x] * SPRITE_LENGTH) as u16;
+                self.next_instruction();
+            }
+            (0xF, _, 0x3, 0x3) => {
+                // Fx33 - LD B, Vx
+                // Store BCD representation of Vx in memory locations I, I+1, and I+2.
+                // The interpreter takes the decimal value of Vx, and places the hundreds digit in memory at location in I,
+                //   the tens digit at location I+1, and the ones digit at location I+2.
+                let x: usize = get_x(op_code) as usize;
+                let i: usize = self.i as usize;
+                self.ram[i] = self.v[x] / 100;
+                self.ram[i + 1] = (self.v[x] % 100) / 10;
+                self.ram[i + 2] = self.v[x] % 10;
+                self.next_instruction();
+            }
+            (0xF, _, 0x6, 0x5) => {
+                // Fx65 - LD Vx, [I]
+                // Read registers V0 through Vx from memory starting at location I.
+                let x: u16 = get_x(op_code);
+                for register in 0..=x {
+                    self.v[register as usize] = self.ram[(self.i + register) as usize];
+                }
                 self.next_instruction();
             }
             _ => { println!("Instruction not supported by CHIP-8."); }
