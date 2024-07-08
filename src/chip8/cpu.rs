@@ -1,6 +1,6 @@
 use crate::chip8::op_code_variable_util::{get_byte, get_nibble, get_nnn, get_x, get_y};
 use super::{font::FONT_SET, op_code_variable_util::split_op_code};
-// use std::rand::{task_rng, Rng};
+
 use rand;
 use rand::Rng;
 
