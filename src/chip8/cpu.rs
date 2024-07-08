@@ -1,6 +1,8 @@
 use crate::chip8::op_code_variable_util::{get_byte, get_nibble, get_nnn, get_x, get_y};
-
 use super::{font::FONT_SET, op_code_variable_util::split_op_code};
+// use std::rand::{task_rng, Rng};
+use rand;
+use rand::Rng;
 
 const MEMORY: usize = 4096;
 const V_REGISTER_COUNT: usize = 16;
@@ -68,7 +70,6 @@ impl CHIP8 {
         }
 
 
-
         match split_op_code(op_code) {
             (0x0, 0x0, 0xE, 0x0) => {
                 // 00E0 - CLS
@@ -78,18 +79,29 @@ impl CHIP8 {
                 }
                 self.next_instruction();
             }
+            (0x0, 0x0, 0xE, 0xE) => {
+                // 00EE - RET
+                // Return from a subroutine
+                self.pc = self.stack_pop();
+                self.next_instruction();
+            }
             (0x1, _, _, _) => {
                 // 1nnn - JP addr
                 // Jump to location nnn
                 let nnn: u16 = get_nnn(op_code);
                 self.jump_to_instruction(nnn);
             }
+            (0x2, _, _, _) => {
+                // 2nnn - CALL addr
+                // Call subroutine at nnn
+                let nnn = get_nnn(op_code);
+                self.stack_push(self.pc);
+                self.jump_to_instruction(nnn);
+            }
             (0x3, _, _, _) => {
-                let x = get_x(op_code) as usize;
-                let kk = get_byte(op_code) as u8;
+                let x: usize = get_x(op_code) as usize;
+                let kk: u8 = get_byte(op_code) as u8;
 
-                println!("Vx: {}", self.v[x]);
-                println!("kk: {}", kk);
                 if self.v[x] == kk {
                     self.skip_instruction();
                 } else {
@@ -117,9 +129,12 @@ impl CHIP8 {
             (0x7, _, _, _) => {
                 // 7xkk - ADD Vx, byte
                 // Set Vx = Vx + kk
-                let x: usize = get_x(op_code) as usize;
-                let kk: u8 = get_byte(op_code) as u8;
-                self.v[x] = self.v[x] + kk;
+                let x: u16 = get_x(op_code) as u16;
+                let kk: u16 = get_byte(op_code) as u16;
+
+                let total: u16 = (self.v[x as usize] as u16) + (kk as u16);
+                self.v[x as usize] = total as u8;
+
                 self.next_instruction();
             }
             (0x8, _, _, 0) => {
@@ -142,10 +157,32 @@ impl CHIP8 {
 
                 self.next_instruction();
             }
+            (0x9, _, _, 0x0) => {
+                // 9xy0 - SNE Vx, Vy
+                // Skip next instruction if Vx != Vy.
+                let x: u16 = get_x(op_code);
+                let y: u16 = get_y(op_code);
+                if self.v[x as usize] != self.v[y as usize] {
+                    self.skip_instruction();
+                } else {
+                    self.next_instruction();
+                }
+            }
             (0xA, _, _, _) => {
                 // Annn - LD I, addr
                 // Set I = nnn
                 self.i = get_nnn(op_code);
+                self.next_instruction();
+            }
+            (0xC, _, _, _) => {
+                // Cxkk - RND Vx, byte
+                // Set Vx = random byte AND kk
+                // The interpreter generates a random number from 0 to 255, which is then ANDed with the value kk.
+                // The results are stored in Vx. See instruction 8xy2 for more information on AND.
+                let kk: u8 = get_byte(op_code) as u8;
+                let x: u16 = get_x(op_code);
+                let random_number: u8 = rand::thread_rng().gen_range(0..255);
+                self.v[x as usize] = random_number & kk;
                 self.next_instruction();
             }
             (0xD, _, _, _) => {
@@ -181,11 +218,37 @@ impl CHIP8 {
                 }
                 self.next_instruction();
             }
+            (0xE, _, 0xA, 0x1) => {
+                // ExA1 - SKNP Vx
+                // Skip next instruction if key with the value of Vx is not pressed
+                println!("Instruction ExA1 not implemented!");
+                self.skip_instruction();
+            }
+            (0xE, _, 0x9, 0xE) => {
+                // Ex9E - SKP Vx
+                // Skip next instruction if key with the value of Vx is pressed
+                println!("Instruction Ex9E not implemented!");
+                self.next_instruction();
+            }
             (0xF, _, 0x1, 0x5) => {
                 // Fx15 - LD DT, Vx
                 // Set delay timer = Vx
                 let x: u16 = get_x(op_code);
                 self.delay_timer = self.v[x as usize];
+                self.next_instruction();
+            }
+            (0xF, _, 0x0, 0x7) => {
+                // Fx07 - LD Vx, DT
+                // Set Vx = delay timer value
+                let x: u16 = get_x(op_code);
+                self.v[x as usize] = self.delay_timer;
+                self.next_instruction();
+            }
+            (0xF, _, 0x1, 0xE) => {
+                // Fx1E - ADD I, Vx
+                // Set I = I + Vx
+                let x: u16 = get_x(op_code);
+                self.i = self.i + self.v[x as usize] as u16;
                 self.next_instruction();
             }
             _ => { println!("Instruction not supported by CHIP-8."); }
@@ -210,5 +273,17 @@ impl CHIP8 {
 
     fn jump_to_instruction(&mut self, instruction: u16) {
         self.pc = instruction;
+    }
+
+    fn stack_push(&mut self, value: u16) {
+        self.stack[self.stack_pointer as usize] = value;
+        self.stack_pointer += 1;
+    }
+
+    fn stack_pop(&mut self) -> u16 {
+        self.stack_pointer -= 1;
+        let value: u16 = self.stack[self.stack_pointer as usize];
+        self.stack[self.stack_pointer as usize] = 0;
+        value
     }
 }

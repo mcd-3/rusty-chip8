@@ -36,7 +36,7 @@ fn main(){
         .unwrap();
 
     // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/zero_demo.ch8"));
+    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/tetris.ch8"));
     for (i, byte) in buffer.iter().enumerate() {
         println!("{:#04X}", byte);
     }
