@@ -7,6 +7,7 @@ mod gui {
 mod drivers {
     pub mod rom_driver;
     pub mod graphics_driver;
+    pub mod keyboard_driver;
 }
 
 mod chip8 {
@@ -16,9 +17,10 @@ mod chip8 {
 }
 
 use drivers::graphics_driver::draw_to_screen;
+use drivers::keyboard_driver::keyboard_to_keypad;
 use gui::windows::base_window::SDLWindow;
 use drivers::rom_driver;
-use sdl2::event::Event;
+use sdl2::{event::Event, keyboard::Keycode};
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 use chip8::cpu::CHIP8;
@@ -50,6 +52,16 @@ fn main(){
         for event in window.event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } => break 'gameloop,
+                Event::KeyDown { keycode: Some(key ), ..} => {
+                    if let Some(k) = keyboard_to_keypad(key) {
+                        processor.press_key(k as usize, true);
+                    }
+                }
+                Event::KeyUp{keycode: Some(key), ..} => {
+                    if let Some(k) = keyboard_to_keypad(key) {
+                        processor.press_key(k as usize, false);
+                    }
+                },
                 _ => {   }
             }
         }

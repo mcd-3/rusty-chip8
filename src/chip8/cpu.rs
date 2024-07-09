@@ -11,6 +11,7 @@ const PROGRAM_START: usize = 0x200;
 const VRAM_WIDTH: usize = 64;
 const VRAM_HEIGHT: usize = 32;
 const SPRITE_LENGTH: u8 = 5;
+const TOTAL_KEYS: usize = 16;
 
 // Sprites have 8 columns and can be up to 15 rows high
 const SPRITE_WIDTH: u16 = 8;
@@ -25,7 +26,8 @@ pub struct CHIP8 {
     sound_timer: u8,
     pc: u16, //program counter
     stack_pointer: u8,
-    stack: [u16; STACK_SIZE]
+    stack: [u16; STACK_SIZE],
+    keys: [bool; TOTAL_KEYS],
 }
 
 impl CHIP8 {
@@ -45,7 +47,8 @@ impl CHIP8 {
             sound_timer: 0,
             pc: PROGRAM_START as u16,
             stack_pointer: 0,
-            stack: [0; STACK_SIZE]
+            stack: [0; STACK_SIZE],
+            keys: [false; TOTAL_KEYS],
         }
     }
 
@@ -58,6 +61,11 @@ impl CHIP8 {
         for (i, op_data) in data.iter().enumerate() {
             self.ram[PROGRAM_START + i] = *op_data;
         }
+    }
+
+    /// Press a key on the 16-character keypad
+    pub fn press_key(&mut self, key: usize, is_pressed: bool) {
+        self.keys[key] = is_pressed;
     }
 
     /// Get the current instruction and increase program counter to the next instruction
@@ -108,7 +116,6 @@ impl CHIP8 {
                 } else {
                     self.next_instruction();
                 }
-                
             }
             (0x4, _, _, _) => {
                 // 4xkk - SNE Vx, byte
@@ -146,6 +153,30 @@ impl CHIP8 {
                 self.v[x as usize] = self.v[y as usize];
                 self.next_instruction();
             }
+            (0x8, _, _, 0x1) => {
+                // 8xy1 - OR Vx, Vy
+                // Set Vx = Vx OR Vy.
+                let x: usize = get_x(op_code) as usize;
+                let y: usize = get_y(op_code) as usize;
+                self.v[x] |= self.v[y];
+                self.next_instruction();
+            }
+            (0x8, _, _, 0x2) => {
+                // 8xy2 - AND Vx, Vy
+                // Set Vx = Vx AND Vy.
+                let x: usize = get_x(op_code) as usize;
+                let y: usize = get_y(op_code) as usize;
+                self.v[x] &= self.v[y];
+                self.next_instruction();
+            }
+            (0x8, _, _, 0x3) => {
+                // 8xy3 - XOR Vx, Vy
+                // Set Vx = Vx XOR Vy.
+                let x: usize = get_x(op_code) as usize;
+                let y: usize = get_y(op_code) as usize;
+                self.v[x] ^= self.v[y];
+                self.next_instruction();
+            }
             (0x8, _, _, 0x4) => {
                 // 8xy4 - ADD Vx, Vy
                 // Set Vx = Vx + Vy, set VF = carry
@@ -170,8 +201,6 @@ impl CHIP8 {
                 }
 
                 // Prevent integer overflow errors
-                println!("Vx: {}", self.v[x]);
-                println!("Vy: {}", self.v[y]);
                 self.v[x] = self.v[y].wrapping_sub(self.v[x]);
                 self.next_instruction();
             }
@@ -195,8 +224,6 @@ impl CHIP8 {
             (0xC, _, _, _) => {
                 // Cxkk - RND Vx, byte
                 // Set Vx = random byte AND kk
-                // The interpreter generates a random number from 0 to 255, which is then ANDed with the value kk.
-                // The results are stored in Vx. See instruction 8xy2 for more information on AND.
                 let kk: u8 = get_byte(op_code) as u8;
                 let x: u16 = get_x(op_code);
                 let random_number: u8 = rand::thread_rng().gen_range(0..255);
@@ -262,6 +289,23 @@ impl CHIP8 {
                 self.delay_timer = self.v[x as usize];
                 self.next_instruction();
             }
+            (0xF, _, 0x0, 0xA) => {
+                // Fx0A - LD Vx, K
+                // Wait for a key press, store the value of the key in Vx.
+                let x: usize = get_x(op_code) as usize;
+                let mut is_pressed = false;
+                for (i, key) in self.keys.iter().enumerate() {
+                    if *key {
+                        self.v[x] = i as u8;
+                        is_pressed = true;
+                        break;
+                    }
+                }
+
+                if is_pressed {
+                    self.next_instruction();
+                }
+            }
             (0xF, _, 0x1, 0xE) => {
                 // Fx1E - ADD I, Vx
                 // Set I = I + Vx
@@ -272,8 +316,6 @@ impl CHIP8 {
             (0xF, _, 0x2, 0x9) => {
                 // Fx29 - LD F, Vx
                 // Set I = location of sprite for digit Vx.
-                // The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx.
-                //   See section 2.4, Display, for more information on the Chip-8 hexadecimal font.
                 let x: usize = get_x(op_code) as usize;
                 self.i = (self.v[x] * SPRITE_LENGTH) as u16;
                 self.next_instruction();
@@ -281,8 +323,6 @@ impl CHIP8 {
             (0xF, _, 0x3, 0x3) => {
                 // Fx33 - LD B, Vx
                 // Store BCD representation of Vx in memory locations I, I+1, and I+2.
-                // The interpreter takes the decimal value of Vx, and places the hundreds digit in memory at location in I,
-                //   the tens digit at location I+1, and the ones digit at location I+2.
                 let x: usize = get_x(op_code) as usize;
                 let i: usize = self.i as usize;
                 self.ram[i] = self.v[x] / 100;
