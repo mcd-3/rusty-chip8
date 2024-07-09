@@ -338,6 +338,15 @@ impl CHIP8 {
                 self.ram[i + 2] = self.v[x] % 10;
                 self.next_instruction();
             }
+            (0xF, _, 0x5, 0x5) => {
+                // Fx55 - LD [I], Vx
+                // Store registers V0 through Vx in memory starting at location I.
+                let x: u16 = get_x(op_code);
+                for index in 0..=x {
+                    self.ram[(self.i + index) as usize] = self.v[index as usize];
+                }
+                self.next_instruction();
+            }
             (0xF, _, 0x6, 0x5) => {
                 // Fx65 - LD Vx, [I]
                 // Read registers V0 through Vx from memory starting at location I.
