@@ -367,24 +367,28 @@ impl CHIP8 {
         (self.ram[addr] as u16) << 8 | (self.ram[addr + 1] as u16)
     }
 
-    // Increases the program counter by 2 to go to the next program instruction
+    /// Increases the program counter by 2 to go to the next program instruction
     fn next_instruction(&mut self) {
         self.pc += 2;
     }
 
+    /// Skip the next instruction in the program counter
     fn skip_instruction(&mut self) {
         self.pc += 4;
     }
 
+    /// Jump to an instruction in the program counter
     fn jump_to_instruction(&mut self, instruction: u16) {
         self.pc = instruction;
     }
 
+    /// Push to the CHIP-8 stack
     fn stack_push(&mut self, value: u16) {
         self.stack[self.stack_pointer as usize] = value;
         self.stack_pointer += 1;
     }
 
+    /// Pop from the CHIP-8 stack
     fn stack_pop(&mut self) -> u16 {
         self.stack_pointer -= 1;
         let value: u16 = self.stack[self.stack_pointer as usize];
