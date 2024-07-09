@@ -266,14 +266,22 @@ impl CHIP8 {
             (0xE, _, 0xA, 0x1) => {
                 // ExA1 - SKNP Vx
                 // Skip next instruction if key with the value of Vx is not pressed
-                println!("Instruction ExA1 not implemented!");
-                self.skip_instruction();
+                let x: usize = get_x(op_code) as usize;
+                if !self.keys[self.v[x] as usize] {
+                    self.skip_instruction();
+                } else {
+                    self.next_instruction();
+                }
             }
             (0xE, _, 0x9, 0xE) => {
                 // Ex9E - SKP Vx
                 // Skip next instruction if key with the value of Vx is pressed
-                println!("Instruction Ex9E not implemented!");
-                self.next_instruction();
+                let x: usize = get_x(op_code) as usize;
+                if self.keys[self.v[x] as usize] {
+                    self.skip_instruction();
+                } else {
+                    self.next_instruction();
+                }
             }
             (0xF, _, 0x0, 0x7) => {
                 // Fx07 - LD Vx, DT
