@@ -33,12 +33,12 @@ fn main(){
 
     // Create canvas
     let mut canvas : Canvas<Window> = window.window.into_canvas()
-        .present_vsync()
+        // .present_vsync()
         .build()
         .unwrap();
 
     // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/tetris.ch8"));
+    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/tank.ch8"));
     for (i, byte) in buffer.iter().enumerate() {
         println!("{:#04X}", byte);
     }
@@ -69,7 +69,7 @@ fn main(){
 
         processor.run_next_instruction();
         draw_to_screen(processor.vram, &mut canvas);
-        // let ten_millis = time::Duration::from_millis(1000 / 60);
+        // let ten_millis = time::Duration::from_millis(1000 / 240);
         // let now = time::Instant::now();
         // thread::sleep(ten_millis);
     }

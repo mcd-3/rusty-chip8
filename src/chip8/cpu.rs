@@ -78,6 +78,11 @@ impl CHIP8 {
             self.delay_timer -= 1
         }
 
+        // TODO: Move this to a tick command
+        if self.sound_timer > 0 {
+            self.sound_timer -= 1;
+        }
+
 
         match split_op_code(op_code) {
             (0x0, 0x0, 0xE, 0x0) => {
@@ -204,6 +209,15 @@ impl CHIP8 {
                 self.v[x] = self.v[y].wrapping_sub(self.v[x]);
                 self.next_instruction();
             }
+            (0x8, _, _, 0x6) => {
+                // 8xy6 - SHR Vx {, Vy}
+                // Set Vx = Vx SHR 1.
+                let x: usize = get_x(op_code) as usize;
+                let y: usize = get_y(op_code) as usize;
+                self.v[0x0f] = if self.v[x] > self.v[y] { 1 } else { 0 };
+                self.v[x] = self.v[x].wrapping_sub(self.v[y]);
+                self.next_instruction();
+            }
             (0x9, _, _, 0x0) => {
                 // 9xy0 - SNE Vx, Vy
                 // Skip next instruction if Vx != Vy.
@@ -295,6 +309,13 @@ impl CHIP8 {
                 // Set delay timer = Vx
                 let x: u16 = get_x(op_code);
                 self.delay_timer = self.v[x as usize];
+                self.next_instruction();
+            }
+            (0xF, _, 0x1, 0x8) => {
+                // Fx18 - LD ST, Vx
+                // Set sound timer = Vx.
+                let x: u16 = get_x(op_code);
+                self.sound_timer = self.v[x as usize];
                 self.next_instruction();
             }
             (0xF, _, 0x0, 0xA) => {
