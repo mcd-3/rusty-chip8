@@ -227,8 +227,10 @@ impl CHIP8 {
                 // 8xy6 - SHR Vx {, Vy}
                 // Set Vx = Vx SHR 1.
                 let x: usize = get_x(op_code) as usize;
+                let shift: u8 = self.v[x] & 1;
+
                 self.v[x] >>= 1;
-                self.v[0xF] = self.v[x] & 1;
+                self.v[0xF] = shift;
                 self.next_instruction();
             }
             (0x8, _, _, 0x7) => {
@@ -250,8 +252,10 @@ impl CHIP8 {
                 // 8xyE - SHL Vx {, Vy}
                 // Set Vx = Vx SHL 1.
                 let x: usize = get_x(op_code) as usize;
-                self.v[0x0F] = (self.v[x] & 0b10000000) >> 7;
+                let shift = (self.v[x] >> 7) & 1;
+
                 self.v[x] <<= 1;
+                self.v[0xF] = shift;
                 self.next_instruction();
             }
             (0x9, _, _, 0x0) => {
