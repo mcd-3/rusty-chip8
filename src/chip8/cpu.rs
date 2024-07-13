@@ -74,6 +74,8 @@ impl CHIP8 {
         println!("[INSTRUCTION]: {:#06X}", op_code);
 
         // TODO: Move this to a tick command
+        // Both timers decrease at a rate of 60 hz, so they will
+        //    need to be decoupled from a CPU cycle tick
         if self.delay_timer > 0 {
             self.delay_timer -= 1
         }
@@ -128,6 +130,17 @@ impl CHIP8 {
                 let x = get_x(op_code);
                 let kk = get_byte(op_code);
                 if self.v[x as usize] != kk as u8 {
+                    self.skip_instruction();
+                } else {
+                    self.next_instruction();
+                }
+            }
+            (0x5, _, _, 0x0) => {
+                // 5xy0 - SE Vx, Vy
+                // Skip next instruction if Vx = Vy.
+                let x: usize = get_x(op_code) as usize;
+                let y: usize = get_y(op_code) as usize;
+                if self.v[x] == self.v[y] {
                     self.skip_instruction();
                 } else {
                     self.next_instruction();
@@ -199,23 +212,30 @@ impl CHIP8 {
                 // Set Vx = Vx - Vy, set VF = NOT borrow
                 let x: usize = get_x(op_code) as usize;
                 let y: usize = get_y(op_code) as usize;
-                if self.v[x]  > self.v[y] {
+                if self.v[x] > self.v[y] {
                     self.v[0xF] = 1;
                 } else {
                     self.v[0xF] = 0;
                 }
 
                 // Prevent integer overflow errors
-                self.v[x] = self.v[y].wrapping_sub(self.v[x]);
+                self.v[x] = self.v[x].wrapping_sub(self.v[y]);
                 self.next_instruction();
             }
             (0x8, _, _, 0x6) => {
                 // 8xy6 - SHR Vx {, Vy}
                 // Set Vx = Vx SHR 1.
                 let x: usize = get_x(op_code) as usize;
-                let y: usize = get_y(op_code) as usize;
-                self.v[0x0f] = if self.v[x] > self.v[y] { 1 } else { 0 };
-                self.v[x] = self.v[x].wrapping_sub(self.v[y]);
+                self.v[x] >>= 1;
+                self.v[0xF] = self.v[x] & 1;
+                self.next_instruction();
+            }
+            (0x8, _, _, 0xE) => {
+                // 8xyE - SHL Vx {, Vy}
+                // Set Vx = Vx SHL 1.
+                let x: usize = get_x(op_code) as usize;
+                self.v[0x0F] = (self.v[x] & 0b10000000) >> 7;
+                self.v[x] <<= 1;
                 self.next_instruction();
             }
             (0x9, _, _, 0x0) => {

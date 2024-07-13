@@ -38,7 +38,7 @@ fn main(){
         .unwrap();
 
     // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/tank.ch8"));
+    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/test_opcode.ch8"));
     for (i, byte) in buffer.iter().enumerate() {
         println!("{:#04X}", byte);
     }
