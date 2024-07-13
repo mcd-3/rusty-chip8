@@ -38,11 +38,7 @@ fn main(){
         .unwrap();
 
     // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/flags.ch8"));
-    for (i, byte) in buffer.iter().enumerate() {
-        println!("{:#04X}", byte);
-    }
-
+    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/test_opcode.ch8"));
     let mut processor: CHIP8 = CHIP8::new();
 
     processor.load_rom_data(&buffer);

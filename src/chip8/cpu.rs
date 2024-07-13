@@ -177,6 +177,10 @@ impl CHIP8 {
                 let x: usize = get_x(op_code) as usize;
                 let y: usize = get_y(op_code) as usize;
                 self.v[x] |= self.v[y];
+
+                // The original COSMAC VIP machine cleared VF
+                self.v[0xF] = 0;
+
                 self.next_instruction();
             }
             (0x8, _, _, 0x2) => {
@@ -185,6 +189,10 @@ impl CHIP8 {
                 let x: usize = get_x(op_code) as usize;
                 let y: usize = get_y(op_code) as usize;
                 self.v[x] &= self.v[y];
+
+                // The original COSMAC VIP machine cleared VF
+                self.v[0xF] = 0;
+
                 self.next_instruction();
             }
             (0x8, _, _, 0x3) => {
@@ -193,6 +201,10 @@ impl CHIP8 {
                 let x: usize = get_x(op_code) as usize;
                 let y: usize = get_y(op_code) as usize;
                 self.v[x] ^= self.v[y];
+
+                // The original COSMAC VIP machine cleared VF
+                self.v[0xF] = 0;
+
                 self.next_instruction();
             }
             (0x8, _, _, 0x4) => {
@@ -406,6 +418,10 @@ impl CHIP8 {
                 for index in 0..=x {
                     self.ram[(self.i + index) as usize] = self.v[index as usize];
                 }
+
+                // The original COSMAC VIP machine incremented I by one
+                self.i += 1;
+
                 self.next_instruction();
             }
             (0xF, _, 0x6, 0x5) => {
@@ -415,9 +431,16 @@ impl CHIP8 {
                 for register in 0..=x {
                     self.v[register as usize] = self.ram[(self.i + register) as usize];
                 }
+
+                // The original COSMAC VIP machine incremented I by one
+                self.i += 1;
+
                 self.next_instruction();
             }
-            _ => { println!("Instruction not supported by CHIP-8."); }
+            _ => {
+                println!("Instruction not supported by CHIP-8. Advancing to next instruction.");
+                self.next_instruction();
+            }
         }
     }
 
