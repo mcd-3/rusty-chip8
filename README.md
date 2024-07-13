@@ -11,7 +11,8 @@ To get SDL2, [follow the instructions here](https://crates.io/crates/sdl2#requir
 ## Resources
 These resources were invaluable to me while developing this interpreter.
 
-- [Cowgod's Chip-8 Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
+- [Cowgod's "Chip-8 Technical Reference"](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
+- [Tobias V. Langhoff's "Guide to making a CHIP-8 emulator"](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/)
 - [aquova's "An Introduction to Chip-8 Emulation using the Rust Programming
 Language"](https://aquova.net/chip8/chip8.pdf)
 - [starrhorne's Chip-8 Emulator](https://github.com/starrhorne/chip8-rust)
