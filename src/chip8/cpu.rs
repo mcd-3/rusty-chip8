@@ -163,7 +163,7 @@ impl CHIP8 {
 
                 self.next_instruction();
             }
-            (0x8, _, _, 0) => {
+            (0x8, _, _, 0x0) => {
                 // 8xy0 - LD Vx, Vy
                 // Set Vx = Vy
                 let x = get_x(op_code);
@@ -344,16 +344,6 @@ impl CHIP8 {
                 }
                 self.next_instruction();
             }
-            (0xE, _, 0xA, 0x1) => {
-                // ExA1 - SKNP Vx
-                // Skip next instruction if key with the value of Vx is not pressed
-                let x: usize = get_x(op_code) as usize;
-                if !self.keys[self.v[x] as usize] {
-                    self.skip_instruction();
-                } else {
-                    self.next_instruction();
-                }
-            }
             (0xE, _, 0x9, 0xE) => {
                 // Ex9E - SKP Vx
                 // Skip next instruction if key with the value of Vx is pressed
@@ -364,25 +354,21 @@ impl CHIP8 {
                     self.next_instruction();
                 }
             }
+            (0xE, _, 0xA, 0x1) => {
+                // ExA1 - SKNP Vx
+                // Skip next instruction if key with the value of Vx is not pressed
+                let x: usize = get_x(op_code) as usize;
+                if !self.keys[self.v[x] as usize] {
+                    self.skip_instruction();
+                } else {
+                    self.next_instruction();
+                }
+            }
             (0xF, _, 0x0, 0x7) => {
                 // Fx07 - LD Vx, DT
                 // Set Vx = delay timer value
                 let x: u16 = get_x(op_code);
                 self.v[x as usize] = self.delay_timer;
-                self.next_instruction();
-            }
-            (0xF, _, 0x1, 0x5) => {
-                // Fx15 - LD DT, Vx
-                // Set delay timer = Vx
-                let x: u16 = get_x(op_code);
-                self.delay_timer = self.v[x as usize];
-                self.next_instruction();
-            }
-            (0xF, _, 0x1, 0x8) => {
-                // Fx18 - LD ST, Vx
-                // Set sound timer = Vx.
-                let x: u16 = get_x(op_code);
-                self.sound_timer = self.v[x as usize];
                 self.next_instruction();
             }
             (0xF, _, 0x0, 0xA) => {
@@ -401,6 +387,20 @@ impl CHIP8 {
                 if is_pressed {
                     self.next_instruction();
                 }
+            }
+            (0xF, _, 0x1, 0x5) => {
+                // Fx15 - LD DT, Vx
+                // Set delay timer = Vx
+                let x: u16 = get_x(op_code);
+                self.delay_timer = self.v[x as usize];
+                self.next_instruction();
+            }
+            (0xF, _, 0x1, 0x8) => {
+                // Fx18 - LD ST, Vx
+                // Set sound timer = Vx.
+                let x: u16 = get_x(op_code);
+                self.sound_timer = self.v[x as usize];
+                self.next_instruction();
             }
             (0xF, _, 0x1, 0xE) => {
                 // Fx1E - ADD I, Vx
