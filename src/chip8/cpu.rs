@@ -236,13 +236,14 @@ impl CHIP8 {
                 // Set Vx = Vy - Vx, set VF = NOT borrow.
                 let x: usize = get_x(op_code) as usize;
                 let y: usize = get_y(op_code) as usize;
+                self.v[x] = self.v[y].wrapping_sub(self.v[x]);
+
                 if self.v[y] > self.v[x] {
                     self.v[0xF] = 1;
                 } else {
                     self.v[0xF] = 0;
                 }
 
-                self.v[x] = self.v[y].wrapping_sub(self.v[x]);
                 self.next_instruction();
             }
             (0x8, _, _, 0xE) => {
