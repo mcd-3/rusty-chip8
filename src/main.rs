@@ -29,7 +29,7 @@ use std::{thread, time};
 
 fn main(){
     let main_window_title: String = String::from("CHIP-8 Emulator");
-    let mut window: SDLWindow = SDLWindow::new(800, 600, main_window_title).unwrap();
+    let mut window: SDLWindow = SDLWindow::new(725, 375, main_window_title).unwrap();
 
     // Create canvas
     let mut canvas : Canvas<Window> = window.window.into_canvas()
