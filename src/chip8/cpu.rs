@@ -236,6 +236,12 @@ impl CHIP8 {
                 // 8xy6 - SHR Vx {, Vy}
                 // Set Vx = Vx SHR 1.
                 let x: usize = get_x(op_code) as usize;
+                let y: usize = get_y(op_code) as usize;
+
+                // The original COSMAC VIP machine set VX to VY
+                // This instruction is ignored in Super-CHIP and Chip-48
+                self.cosmac_set_vx_to_vy(x, y);
+
                 let shift: u8 = self.v[x] & 1;
 
                 self.v[x] >>= 1;
@@ -261,6 +267,12 @@ impl CHIP8 {
                 // 8xyE - SHL Vx {, Vy}
                 // Set Vx = Vx SHL 1.
                 let x: usize = get_x(op_code) as usize;
+                let y: usize = get_y(op_code) as usize;
+
+                // The original COSMAC VIP machine set VX to VY
+                // This instruction is ignored in Super-CHIP and Chip-48
+                self.cosmac_set_vx_to_vy(x, y);
+
                 let shift = (self.v[x] >> 7) & 1;
 
                 self.v[x] <<= 1;
@@ -283,6 +295,12 @@ impl CHIP8 {
                 // Set I = nnn
                 self.i = get_nnn(op_code);
                 self.next_instruction();
+            }
+            (0xB, _, _, _) => {
+                // Bnnn - JP V0, addr
+                // Jump to location nnn + V0.
+                let nnn: u16 = get_nnn(op_code);
+                self.jump_to_instruction(nnn + self.v[0] as u16)
             }
             (0xC, _, _, _) => {
                 // Cxkk - RND Vx, byte
@@ -485,5 +503,15 @@ impl CHIP8 {
     /// The COSMAC VIP did this for the bitwise operand opcodes 8xy1, 8xy2 and 8xy3.
     fn cosmac_clear_vf(&mut self) {
         self.v[0xF] = 0;
+    }
+
+    /// Sets the register VX to the value of VY
+    /// The COSMAC VIP did this for the bitshift operand opcodes 8xy6 and 8xyE.
+    fn cosmac_set_vx_to_vy(
+        &mut self,
+        x: usize,
+        y: usize
+    ) {
+        self.v[x] = self.v[y];
     }
 }
