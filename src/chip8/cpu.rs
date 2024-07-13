@@ -179,8 +179,7 @@ impl CHIP8 {
                 self.v[x] |= self.v[y];
 
                 // The original COSMAC VIP machine cleared VF
-                self.v[0xF] = 0;
-
+                self.cosmac_clear_vf();
                 self.next_instruction();
             }
             (0x8, _, _, 0x2) => {
@@ -191,8 +190,7 @@ impl CHIP8 {
                 self.v[x] &= self.v[y];
 
                 // The original COSMAC VIP machine cleared VF
-                self.v[0xF] = 0;
-
+                self.cosmac_clear_vf();
                 self.next_instruction();
             }
             (0x8, _, _, 0x3) => {
@@ -203,8 +201,7 @@ impl CHIP8 {
                 self.v[x] ^= self.v[y];
 
                 // The original COSMAC VIP machine cleared VF
-                self.v[0xF] = 0;
-
+                self.cosmac_clear_vf();
                 self.next_instruction();
             }
             (0x8, _, _, 0x4) => {
@@ -420,8 +417,7 @@ impl CHIP8 {
                 }
 
                 // The original COSMAC VIP machine incremented I by one
-                self.i += 1;
-
+                self.cosmac_increment_i();
                 self.next_instruction();
             }
             (0xF, _, 0x6, 0x5) => {
@@ -433,8 +429,7 @@ impl CHIP8 {
                 }
 
                 // The original COSMAC VIP machine incremented I by one
-                self.i += 1;
-
+                self.cosmac_increment_i();
                 self.next_instruction();
             }
             _ => {
@@ -478,5 +473,17 @@ impl CHIP8 {
         let value: u16 = self.stack[self.stack_pointer as usize];
         self.stack[self.stack_pointer as usize] = 0;
         value
+    }
+
+    /// Increments I by 1.
+    /// The COSMAC VIP did this for the save and load opcodes Fx55 and Fx65 respectively.
+    fn cosmac_increment_i(&mut self) {
+        self.i += 1;
+    }
+
+    /// Clears the VF flag
+    /// The COSMAC VIP did this for the bitwise operand opcodes 8xy1, 8xy2 and 8xy3.
+    fn cosmac_clear_vf(&mut self) {
+        self.v[0xF] = 0;
     }
 }
