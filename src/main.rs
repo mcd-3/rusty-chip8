@@ -38,7 +38,7 @@ fn main(){
         .unwrap();
 
     // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/corax_plus.ch8"));
+    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/flags.ch8"));
     for (i, byte) in buffer.iter().enumerate() {
         println!("{:#04X}", byte);
     }

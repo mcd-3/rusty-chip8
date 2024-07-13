@@ -198,12 +198,11 @@ impl CHIP8 {
             (0x8, _, _, 0x4) => {
                 // 8xy4 - ADD Vx, Vy
                 // Set Vx = Vx + Vy, set VF = carry
-                let x = get_x(op_code) as u16;
-                let y = get_y(op_code) as u16;
-                let total: usize = self.v[x as usize] as usize + self.v[y as usize] as usize;
-
-                self.v[0x0F] = if total > 0xFF { 1 } else { 0 };
-                self.v[x as usize] = (total & 0x00FF) as u8;
+                let x: usize = get_x(op_code) as usize;
+                let y: usize = get_y(op_code) as usize;
+                let total: u16 = self.v[x] as u16 + self.v[y] as u16;
+                self.v[x] = total as u8;
+                self.v[0x0f] = if total > 0xFF { 1 } else { 0 };
 
                 self.next_instruction();
             }
