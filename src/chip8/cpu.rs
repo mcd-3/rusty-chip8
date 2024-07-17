@@ -333,8 +333,19 @@ impl CHIP8 {
                             let pixel_index = x_coord + VRAM_WIDTH * y_coord;
                             bit_flipped |= self.vram[pixel_index];
                             self.vram[pixel_index] ^= 1;
+
+                            // The original COSMAC VIP machine clips the sprite if it overflows off screen
+                            if self.cosmac_sprite_bounds_check(vx as u16, j as u16, VRAM_WIDTH as u16) {
+                                break;
+                            }
                         }
                     }
+
+                    // The original COSMAC VIP machine clips the sprite if it overflows off screen
+                    if self.cosmac_sprite_bounds_check(vy as u16, i as u16, VRAM_HEIGHT as u16) {
+                        break;
+                    }
+
                 }
 
                 if bit_flipped == 1 {
@@ -513,5 +524,16 @@ impl CHIP8 {
         y: usize
     ) {
         self.v[x] = self.v[y];
+    }
+
+    /// Check to see if a sprite should be clipped
+    /// The COSMAC VIP clips the sprite if it overflows off screen for the draw opcode Dxyn
+    fn cosmac_sprite_bounds_check(
+        &mut self,
+        v_register: u16,
+        indexer: u16,
+        bounds: u16,
+    ) -> bool {
+        ((v_register + indexer) % bounds) + 1 > (bounds - 1)
     }
 }
