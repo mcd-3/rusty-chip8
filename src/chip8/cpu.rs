@@ -68,23 +68,28 @@ impl CHIP8 {
         self.keys[key] = is_pressed;
     }
 
-    /// Get the current instruction and increase program counter to the next instruction
-    pub fn run_next_instruction(&mut self) {
+    pub fn tick(&mut self) {
         let op_code: u16 = self.get_op_code();
-        println!("[INSTRUCTION]: {:#06X}", op_code);
 
-        // TODO: Move this to a tick command
+        self.timers_tick();
+        self.run_instruction(op_code);
+    }
+
+    pub fn timers_tick(&mut self) {
         // Both timers decrease at a rate of 60 hz, so they will
         //    need to be decoupled from a CPU cycle tick
         if self.delay_timer > 0 {
             self.delay_timer -= 1
         }
 
-        // TODO: Move this to a tick command
         if self.sound_timer > 0 {
             self.sound_timer -= 1;
         }
+    }
 
+    /// Get the current instruction and increase program counter to the next instruction
+    fn run_instruction(&mut self, op_code: u16) {
+        println!("[INSTRUCTION]: {:#06X}", op_code);
 
         match split_op_code(op_code) {
             (0x0, 0x0, 0xE, 0x0) => {

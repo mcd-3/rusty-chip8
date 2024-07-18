@@ -38,7 +38,7 @@ fn main(){
         .unwrap();
 
     // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/lunar_lander.ch8"));
+    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/quirks_test.ch8"));
     let mut processor: CHIP8 = CHIP8::new();
 
     processor.load_rom_data(&buffer);
@@ -63,7 +63,7 @@ fn main(){
         }
 
 
-        processor.run_next_instruction();
+        processor.tick();
         draw_to_screen(processor.vram, &mut canvas);
         // let ten_millis = time::Duration::from_millis(1000 / 240);
         // let now = time::Instant::now();
