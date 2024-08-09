@@ -3,6 +3,7 @@ use super::{font::FONT_SET, op_code_variable_util::split_op_code};
 
 use rand;
 use rand::Rng;
+use std::{thread, time};
 
 const MEMORY: usize = 4096;
 const V_REGISTER_COUNT: usize = 16;
@@ -28,6 +29,7 @@ pub struct CHIP8 {
     stack_pointer: u8,
     stack: [u16; STACK_SIZE],
     keys: [bool; TOTAL_KEYS],
+    timer_time: time::Instant,
 }
 
 impl CHIP8 {
@@ -49,6 +51,7 @@ impl CHIP8 {
             stack_pointer: 0,
             stack: [0; STACK_SIZE],
             keys: [false; TOTAL_KEYS],
+            timer_time: time::Instant::now()
         }
     }
 
@@ -70,8 +73,14 @@ impl CHIP8 {
 
     pub fn tick(&mut self) {
         let op_code: u16 = self.get_op_code();
+        let now = time::Instant::now();
 
-        self.timers_tick();
+        // 1000 / 60 is 60 frames a second which is how quick the timers are supposed to run.
+        if (now > (self.timer_time + time::Duration::from_millis(1000 / 60))) {
+            self.timers_tick();
+            self.timer_time = now;
+        }
+
         self.run_instruction(op_code);
     }
 

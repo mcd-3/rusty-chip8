@@ -84,8 +84,5 @@ fn main(){
 
         processor.tick();
         draw_to_screen(processor.vram, &mut canvas);
-        // let ten_millis = time::Duration::from_millis(1000 / 240);
-        // let now = time::Instant::now();
-        // thread::sleep(ten_millis);
     }
 }
