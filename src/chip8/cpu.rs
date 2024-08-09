@@ -23,7 +23,7 @@ pub struct CHIP8 {
     v: [u8; V_REGISTER_COUNT],
     i: u16,
     delay_timer: u8,
-    sound_timer: u8,
+    pub sound_timer: u8,
     pc: u16, //program counter
     stack_pointer: u8,
     stack: [u16; STACK_SIZE],

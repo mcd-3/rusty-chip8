@@ -50,7 +50,7 @@ fn main(){
     let mut sound_system = sound_driver::create_sound_card(&sdl);
 
     // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/quirks_test.ch8"));
+    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/beep.ch8"));
     let mut processor: CHIP8 = CHIP8::new();
 
     processor.load_rom_data(&buffer);
@@ -64,16 +64,21 @@ fn main(){
                     if let Some(k) = keyboard_to_keypad(key) {
                         processor.press_key(k as usize, true);
                     }
-                    sound_driver::play_sound(&sound_system);
                 }
                 Event::KeyUp{keycode: Some(key), ..} => {
                     if let Some(k) = keyboard_to_keypad(key) {
                         processor.press_key(k as usize, false);
                     }
-                    sound_driver::stop_sound(&sound_system);
                 },
                 _ => {   }
             }
+        }
+
+        // TODO: Move this check to a proper function
+        if (processor.sound_timer > 0) {
+            sound_driver::play_sound(&sound_system);
+        } else {
+            sound_driver::stop_sound(&sound_system);
         }
 
 
