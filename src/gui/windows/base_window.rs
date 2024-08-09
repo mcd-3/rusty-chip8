@@ -3,18 +3,17 @@ use sdl2::video::Window;
 use sdl2::EventPump;
 
 pub struct SDLWindow {
-    pub sdl: Sdl,
     pub window: Window,
     pub event_pump: EventPump
 }
 
 impl SDLWindow {
     pub fn new(
+        sdl: &Sdl,
         width: usize,
         height: usize,
-        title: String
+        title: String,
     ) -> Result<Self, &'static str> {
-        let sdl: Sdl = sdl2::init().unwrap();
         let video_subsystem: VideoSubsystem = sdl.video().unwrap();
 
         // Initiate the window
@@ -27,7 +26,6 @@ impl SDLWindow {
         let event_pump: sdl2::EventPump =  sdl.event_pump().unwrap();
 
         Ok(SDLWindow {
-            sdl,
             window,
             event_pump
         })
