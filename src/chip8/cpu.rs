@@ -13,6 +13,7 @@ const VRAM_WIDTH: usize = 64;
 const VRAM_HEIGHT: usize = 32;
 const SPRITE_LENGTH: u8 = 5;
 const TOTAL_KEYS: usize = 16;
+const TICKS_PER_CYCLE: u16 = 8;
 
 // Sprites have 8 columns and can be up to 15 rows high
 const SPRITE_WIDTH: u16 = 8;
@@ -72,16 +73,17 @@ impl CHIP8 {
     }
 
     pub fn tick(&mut self) {
-        let op_code: u16 = self.get_op_code();
         let now = time::Instant::now();
 
         // 1000 / 60 is 60 frames a second which is how quick the timers are supposed to run.
         if (now > (self.timer_time + time::Duration::from_millis(1000 / 60))) {
             self.timers_tick();
             self.timer_time = now;
-        }
 
-        self.run_instruction(op_code);
+            // The original COSMAC VIP machine limited the frames per cycle to 8 at 60 kHz
+            // Super-CHIP8 is not capped to 60 kHz and is not bound to ticks per cycle 
+            self.cosmac_cycle_ticks(TICKS_PER_CYCLE);
+        }
     }
 
     pub fn timers_tick(&mut self) {
@@ -549,5 +551,17 @@ impl CHIP8 {
         bounds: u16,
     ) -> bool {
         ((v_register + indexer) % bounds) + 1 > (bounds - 1)
+    }
+
+    /// Perform a certain amount of ticks per CPU cycle
+    /// The COSMAC VIP sets the frame limit to 8 ticks per cycle at 60 kHz
+    fn cosmac_cycle_ticks(
+        &mut self,
+        frame_limit: u16
+    ) {
+        for i in 0..frame_limit {
+            let op_code: u16 = self.get_op_code();
+            self.run_instruction(op_code);
+        }
     }
 }

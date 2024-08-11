@@ -50,7 +50,7 @@ fn main(){
     let mut sound_system = sound_driver::create_sound_card(&sdl);
 
     // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/beep.ch8"));
+    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/quirks_test.ch8"));
     let mut processor: CHIP8 = CHIP8::new();
 
     processor.load_rom_data(&buffer);
