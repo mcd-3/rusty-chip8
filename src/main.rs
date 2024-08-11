@@ -22,13 +22,11 @@ use drivers::keyboard_driver::keyboard_to_keypad;
 use gui::windows::base_window::SDLWindow;
 use drivers::rom_driver;
 use drivers::sound_driver;
-use sdl2::{Sdl};
-use sdl2::{event::Event, keyboard::Keycode};
+use sdl2::Sdl;
+use sdl2::event::Event;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 use chip8::cpu::CHIP8;
-
-use std::{thread, time};
 
 fn main(){
     let sdl: Sdl = sdl2::init().unwrap();
@@ -47,10 +45,10 @@ fn main(){
         .unwrap();
 
     // Create soundcard
-    let mut sound_system = sound_driver::create_sound_card(&sdl);
+    let sound_system = sound_driver::create_sound_card(&sdl);
 
     // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/quirks_test.ch8"));
+    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/beep.ch8"));
     let mut processor: CHIP8 = CHIP8::new();
 
     processor.load_rom_data(&buffer);
@@ -75,7 +73,7 @@ fn main(){
         }
 
         // TODO: Move this check to a proper function
-        if (processor.sound_timer > 0) {
+        if processor.sound_timer > 0 {
             sound_driver::play_sound(&sound_system);
         } else {
             sound_driver::stop_sound(&sound_system);

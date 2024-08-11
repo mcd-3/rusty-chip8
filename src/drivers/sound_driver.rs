@@ -11,9 +11,6 @@ pub fn create_sound_card(sdl: &Sdl) -> AudioDevice<SquareWave> {
     };
 
     let sc = audio.open_playback(None, &spec, |audio_spec| {
-        // Show obtained AudioSpec
-        println!("{:?}", audio_spec);
-
         SquareWave {
             phase_inc: 240.0 / audio_spec.freq as f32,
             phase: 0.0,

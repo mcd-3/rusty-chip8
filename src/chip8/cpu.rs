@@ -3,7 +3,7 @@ use super::{font::FONT_SET, op_code_variable_util::split_op_code};
 
 use rand;
 use rand::Rng;
-use std::{thread, time};
+use std::time;
 
 const MEMORY: usize = 4096;
 const V_REGISTER_COUNT: usize = 16;
@@ -21,7 +21,7 @@ const SPRITE_WIDTH: u16 = 8;
 // CHIP-8 Interpreter
 pub struct CHIP8 {
     ram: [u8; MEMORY],
-    pub vram: [u8; (VRAM_WIDTH * VRAM_HEIGHT)],
+    pub vram: [u8; VRAM_WIDTH * VRAM_HEIGHT],
     v: [u8; V_REGISTER_COUNT],
     i: u16,
     delay_timer: u8,
@@ -76,7 +76,7 @@ impl CHIP8 {
         let now = time::Instant::now();
 
         // 1000 / 60 is 60 frames a second which is how quick the timers are supposed to run.
-        if (now > (self.timer_time + time::Duration::from_millis(1000 / 60))) {
+        if now > (self.timer_time + time::Duration::from_millis(1000 / 60)) {
             self.timers_tick();
             self.timer_time = now;
 
@@ -559,7 +559,7 @@ impl CHIP8 {
         &mut self,
         frame_limit: u16
     ) {
-        for i in 0..frame_limit {
+        for _i in 0..frame_limit {
             let op_code: u16 = self.get_op_code();
             self.run_instruction(op_code);
         }

@@ -1,7 +1,7 @@
 use sdl2::keyboard::Keycode;
 
 pub fn keyboard_to_keypad(key: Keycode) -> Option<u8> {
-    match (key) {
+    match key {
         Keycode::Num1 => Some(0x1),
         Keycode::Num2 => Some(0x2),
         Keycode::Num3 => Some(0x3),
