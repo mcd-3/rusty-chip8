@@ -27,60 +27,91 @@ use sdl2::event::Event;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 use chip8::cpu::CHIP8;
-
-fn main(){
-    let sdl: Sdl = sdl2::init().unwrap();
-    let main_window_title: String = String::from("CHIP-8 Emulator");
-    let mut window: SDLWindow = SDLWindow::new(
-        &sdl,
-        725,
-        375,
-        main_window_title
-    ).unwrap();
-
-    // Create canvas
-    let mut canvas : Canvas<Window> = window.window.into_canvas()
-        // .present_vsync()
-        .build()
-        .unwrap();
-
-    // Create soundcard
-    let sound_system = sound_driver::create_sound_card(&sdl);
-
-    // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/beep.ch8"));
-    let mut processor: CHIP8 = CHIP8::new();
-
-    processor.load_rom_data(&buffer);
-
-    // Start the SDL2 application
-    'gameloop: loop {
-        for event in window.event_pump.poll_iter() {
-            match event {
-                Event::Quit { .. } => break 'gameloop,
-                Event::KeyDown { keycode: Some(key ), ..} => {
-                    if let Some(k) = keyboard_to_keypad(key) {
-                        processor.press_key(k as usize, true);
-                    }
-                }
-                Event::KeyUp{keycode: Some(key), ..} => {
-                    if let Some(k) = keyboard_to_keypad(key) {
-                        processor.press_key(k as usize, false);
-                    }
-                },
-                _ => {   }
-            }
-        }
-
-        // TODO: Move this check to a proper function
-        if processor.sound_timer > 0 {
-            sound_driver::play_sound(&sound_system);
-        } else {
-            sound_driver::stop_sound(&sound_system);
-        }
+use native_dialog::{FileDialog, MessageDialog, MessageType};
 
 
-        processor.tick();
-        draw_to_screen(processor.vram, &mut canvas);
-    }
+// fn main(){
+//     let sdl: Sdl = sdl2::init().unwrap();
+//     let main_window_title: String = String::from("CHIP-8 Emulator");
+//     let mut window: SDLWindow = SDLWindow::new(
+//         &sdl,
+//         725,
+//         375,
+//         main_window_title
+//     ).unwrap();
+
+//     // Create canvas
+//     let mut canvas : Canvas<Window> = window.window.into_canvas()
+//         // .present_vsync()
+//         .build()
+//         .unwrap();
+
+//     // Create soundcard
+//     let sound_system = sound_driver::create_sound_card(&sdl);
+
+//     // Load rom into memory
+//     let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/tetris.ch8"));
+//     let mut processor: CHIP8 = CHIP8::new();
+
+//     processor.load_rom_data(&buffer);
+
+//     // Start the SDL2 application
+//     'gameloop: loop {
+//         for event in window.event_pump.poll_iter() {
+//             match event {
+//                 Event::Quit { .. } => break 'gameloop,
+//                 Event::KeyDown { keycode: Some(key ), ..} => {
+//                     if let Some(k) = keyboard_to_keypad(key) {
+//                         processor.press_key(k as usize, true);
+//                     }
+//                 }
+//                 Event::KeyUp{keycode: Some(key), ..} => {
+//                     if let Some(k) = keyboard_to_keypad(key) {
+//                         processor.press_key(k as usize, false);
+//                     }
+//                 },
+//                 _ => {   }
+//             }
+//         }
+
+//         // TODO: Move this check to a proper function
+//         if processor.sound_timer > 0 {
+//             sound_driver::play_sound(&sound_system);
+//         } else {
+//             sound_driver::stop_sound(&sound_system);
+//         }
+
+
+//         processor.tick();
+//         draw_to_screen(processor.vram, &mut canvas);
+//     }
+// }
+
+slint::include_modules!();
+
+fn main() -> Result<(), slint::PlatformError> {
+    let app = HelloWorld::new()?;//.unwrap().run().unwrap();
+
+    let ui_handle = app.as_weak();
+    app.on_run_rom(move |_string| {
+        let ui = ui_handle.unwrap();
+        let result: String = format!("Hello world!");
+        ui.set_results(result.into());
+
+        println!("hi");
+
+        let path = FileDialog::new()
+            .set_location("~/Desktop")
+            .add_filter("CHIP-8 ROM", &["ch8"])
+            // .add_filter("JPEG Image", &["jpg", "jpeg"])
+            .show_open_single_file()
+            .unwrap();
+
+        let path = match path {
+            Some(path) => path,
+            None => return,
+        };
+    });
+
+    app.run()
 }
