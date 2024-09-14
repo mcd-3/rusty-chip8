@@ -1,3 +1,5 @@
 /target
 /roms
 .DS_STORE
+node_modules
+build
