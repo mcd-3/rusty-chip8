@@ -1,5 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
+import { invoke } from '@tauri-apps/api/tauri'
 
 function App() {
   return (
@@ -18,6 +19,12 @@ function App() {
           Learn React
         </a>
       </header>
+      <button onClick={() => {
+        // Invoke the command
+        invoke('run_emulator');
+      }}>
+
+      </button>
     </div>
   );
 }
