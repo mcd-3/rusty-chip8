@@ -1,4 +1,5 @@
 use crate::chip8::op_code_variable_util::{get_byte, get_nibble, get_nnn, get_x, get_y};
+use crate::debug::debugger::Debugger;
 use super::{font::FONT_SET, op_code_variable_util::split_op_code};
 
 use rand;
@@ -100,7 +101,7 @@ impl CHIP8 {
 
     /// Get the current instruction and increase program counter to the next instruction
     fn run_instruction(&mut self, op_code: u16) {
-        println!("[INSTRUCTION]: {:#06X}", op_code);
+        Debugger::dprint_opcode(String::from("[INSTRUCTION]: "), op_code);
 
         match split_op_code(op_code) {
             (0x0, 0x0, 0xE, 0x0) => {
@@ -478,7 +479,7 @@ impl CHIP8 {
                 self.next_instruction();
             }
             _ => {
-                println!("Instruction not supported by CHIP-8. Advancing to next instruction.");
+                Debugger::dprint(String::from("Instruction not supported by CHIP-8. Advancing to next instruction."), false);
                 self.next_instruction();
             }
         }

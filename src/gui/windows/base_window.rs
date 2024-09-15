@@ -20,6 +20,7 @@ impl SDLWindow {
         let window: Window = video_subsystem
             .window(&title, width as u32, height as u32)
             .position_centered()
+            .resizable()
             .build()
             .unwrap();
 

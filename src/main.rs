@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 mod gui {
     pub mod windows {
         pub mod base_window;
@@ -17,18 +19,26 @@ mod chip8 {
     pub mod op_code_variable_util;
 }
 
+pub mod debug {
+    pub mod debugger;
+}
+
+use chip8::cpu::CHIP8;
 use drivers::graphics_driver::draw_to_screen;
 use drivers::keyboard_driver::keyboard_to_keypad;
-use gui::windows::base_window::SDLWindow;
 use drivers::rom_driver;
 use drivers::sound_driver;
+use gui::windows::base_window::SDLWindow;
+use native_dialog::FileDialog;
 use sdl2::Sdl;
 use sdl2::event::Event;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
-use chip8::cpu::CHIP8;
+use std::path::PathBuf;
 
 fn main(){
+    // We need to declare SDL first before the file dialog
+    // This way we can capture keystrokes
     let sdl: Sdl = sdl2::init().unwrap();
     let main_window_title: String = String::from("CHIP-8 Emulator");
     let mut window: SDLWindow = SDLWindow::new(
@@ -37,6 +47,17 @@ fn main(){
         375,
         main_window_title
     ).unwrap();
+
+    let path: Option<PathBuf> = FileDialog::new()
+        .set_location("~/Desktop")
+        .add_filter("CHIP-8 ROM", &["ch8"])
+        .show_open_single_file()
+        .unwrap();
+
+    let path: PathBuf = match path {
+        Some(path) => path,
+        None => return,
+    };
 
     // Create canvas
     let mut canvas : Canvas<Window> = window.window.into_canvas()
@@ -48,7 +69,7 @@ fn main(){
     let sound_system = sound_driver::create_sound_card(&sdl);
 
     // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(String::from("roms/beep.ch8"));
+    let buffer: Vec<u8> = rom_driver::read_rom_data(path);
     let mut processor: CHIP8 = CHIP8::new();
 
     processor.load_rom_data(&buffer);
@@ -72,13 +93,11 @@ fn main(){
             }
         }
 
-        // TODO: Move this check to a proper function
         if processor.sound_timer > 0 {
             sound_driver::play_sound(&sound_system);
         } else {
             sound_driver::stop_sound(&sound_system);
         }
-
 
         processor.tick();
         draw_to_screen(processor.vram, &mut canvas);
