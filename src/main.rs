@@ -26,7 +26,7 @@ pub mod debug {
 use chip8::cpu::CHIP8;
 use drivers::graphics_driver::draw_to_screen;
 use drivers::keyboard_driver::keyboard_to_keypad;
-use drivers::rom_driver;
+use drivers::rom_driver::RomDriver;
 use drivers::sound_driver;
 use gui::windows::base_window::SDLWindow;
 use native_dialog::FileDialog;
@@ -69,7 +69,12 @@ fn main(){
     let sound_system = sound_driver::create_sound_card(&sdl);
 
     // Load rom into memory
-    let buffer: Vec<u8> = rom_driver::read_rom_data(path);
+    let rom_driver: RomDriver = RomDriver::new(path);
+    let buffer: Vec<u8> = match rom_driver.read_rom_data() {
+        Ok(path) => path,
+        Err(e) => panic!("{}", e)
+    };
+
     let mut processor: CHIP8 = CHIP8::new();
 
     processor.load_rom_data(&buffer);
