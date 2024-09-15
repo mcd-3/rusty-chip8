@@ -1,5 +1,7 @@
-pub fn read_rom_data(file_path: String) -> Vec<u8> {
-    println!("Opening file: {}", &file_path);
+use std::path::PathBuf;
+
+pub fn read_rom_data(file_path: PathBuf) -> Vec<u8> {
+    // println!("Opening file: {}", &file_path);
 
     // Test code to read rom data
     match std::fs::read(file_path) {
