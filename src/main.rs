@@ -19,6 +19,10 @@ mod chip8 {
     pub mod op_code_variable_util;
 }
 
+pub mod debug {
+    pub mod debugger;
+}
+
 use chip8::cpu::CHIP8;
 use drivers::graphics_driver::draw_to_screen;
 use drivers::keyboard_driver::keyboard_to_keypad;
