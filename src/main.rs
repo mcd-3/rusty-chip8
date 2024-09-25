@@ -25,7 +25,7 @@ pub mod debug {
 
 use chip8::cpu::CHIP8;
 use drivers::graphics_driver::draw_to_screen;
-use drivers::keyboard_driver::keyboard_to_keypad;
+use drivers::keyboard_driver::KeyboardDriver;
 use drivers::rom_driver::RomDriver;
 use drivers::sound_driver;
 use gui::windows::base_window::SDLWindow;
@@ -75,6 +75,8 @@ fn main(){
         Err(e) => panic!("{}", e)
     };
 
+    let keyboard_driver: KeyboardDriver = KeyboardDriver::new();
+
     let mut processor: CHIP8 = CHIP8::new();
 
     processor.load_rom_data(&buffer);
@@ -85,12 +87,12 @@ fn main(){
             match event {
                 Event::Quit { .. } => break 'gameloop,
                 Event::KeyDown { keycode: Some(key ), ..} => {
-                    if let Some(k) = keyboard_to_keypad(key) {
+                    if let Some(k) = keyboard_driver.keyboard_to_keypad(key) {
                         processor.press_key(k as usize, true);
                     }
                 }
                 Event::KeyUp{keycode: Some(key), ..} => {
-                    if let Some(k) = keyboard_to_keypad(key) {
+                    if let Some(k) = keyboard_driver.keyboard_to_keypad(key) {
                         processor.press_key(k as usize, false);
                     }
                 },
