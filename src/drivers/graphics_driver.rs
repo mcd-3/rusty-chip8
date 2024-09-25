@@ -13,10 +13,12 @@ impl GraphicsDriver {
         }
     }
 
+    /// Update the data in the vram
     pub fn update_vram(&mut self, vram: [u8; 2048]) {
         self.vram = vram
     }
 
+    /// Draw the vram data to a canvas
     pub fn draw_to_screen(&mut self) {
         // vram: [u8; 2048], canvas: &mut Canvas<Window>
         let pixel_width: u32 = 10;
@@ -43,6 +45,8 @@ impl GraphicsDriver {
         self.canvas.present();
     }
     
+    /// Get the color of the bit
+    /// White if on, dark grey if off
     fn get_color(&self, pixel_bit: u8) -> Color {
         if pixel_bit == 1 {
             Color::RGB(255, 255, 255)
@@ -51,36 +55,3 @@ impl GraphicsDriver {
         }
     }
 }
-
-// pub fn draw_to_screen(vram: [u8; 2048], canvas: &mut Canvas<Window>) {
-//     let pixel_width: u32 = 10;
-//     let pixel_height: u32 = 10;
-//     let left_margin: u32 = 11;
-//     let row_length: usize = 64;
-
-//     canvas.set_draw_color(Color::RGB(0, 0, 0));
-//     canvas.clear();
-
-//     for i in 0..vram.len() {
-//         canvas.set_draw_color(get_color(vram[i]));
-//         let x: u32 = (i % row_length) as u32;
-//         let y: u32 = (i / row_length) as u32;
-//         canvas.fill_rect(
-//             Rect::new(
-//                 ((left_margin + x) + (pixel_width * x)) as i32,
-//                 ((left_margin + y) + (pixel_height * y)) as i32,
-//                 pixel_width,
-//                 pixel_height
-//             )
-//         ).unwrap();
-//     }
-//     canvas.present();
-// }
-
-// fn get_color(pixel_bit: u8) -> Color {
-//     if pixel_bit == 1 {
-//         Color::RGB(255, 255, 255)
-//     } else {
-//         Color::RGB(33, 33, 33)
-//     }
-// }
