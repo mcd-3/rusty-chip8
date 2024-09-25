@@ -3,7 +3,7 @@ use sdl2::{pixels::Color, rect::Rect, render::Canvas, video::Window};
 pub fn draw_to_screen(vram: [u8; 2048], canvas: &mut Canvas<Window>) {
     let pixel_width: u32 = 10;
     let pixel_height: u32 = 10;
-    let left_margin: u32 = 10;
+    let left_margin: u32 = 11;
     let row_length: usize = 64;
 
     canvas.set_draw_color(Color::RGB(0, 0, 0));
