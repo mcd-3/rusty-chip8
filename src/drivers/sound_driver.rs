@@ -1,35 +1,45 @@
-use sdl2::Sdl;
+use sdl2::{AudioSubsystem, Sdl};
 use sdl2::audio::{AudioDevice, AudioCallback, AudioSpecDesired};
 
-pub fn create_sound_card(sdl: &Sdl) -> AudioDevice<SquareWave> {
-    let audio = sdl.audio().unwrap();
+pub struct SoundDriver {
+    audio: AudioDevice<SquareWave>
+}
 
-    let spec = AudioSpecDesired {
-        freq: Some(44100), //44.1 kHz audio
-        channels: Some(1), // mono channel
-        samples: None,
-    };
+impl SoundDriver {
+    pub fn new(sdl: &Sdl) -> Self {
+        let audio: AudioSubsystem = sdl.audio().unwrap();
+    
+        let spec: AudioSpecDesired = AudioSpecDesired {
+            freq: Some(44100), //44.1 kHz audio
+            channels: Some(1), // mono channel
+            samples: None,
+        };
+    
+        let sc: AudioDevice<SquareWave> = audio.open_playback(None, &spec, |audio_spec| {
+            SquareWave {
+                phase_inc: 240.0 / audio_spec.freq as f32,
+                phase: 0.0,
+                volume: 0.25,
+            }
+        }).unwrap();
 
-    let sc = audio.open_playback(None, &spec, |audio_spec| {
-        SquareWave {
-            phase_inc: 240.0 / audio_spec.freq as f32,
-            phase: 0.0,
-            volume: 0.25,
+        SoundDriver {
+            audio: sc
         }
-    }).unwrap();
+    }
+    
+    /// Start the audio playback
+    pub fn play_sound(&self) {
+        self.audio.resume();
+    }
 
-    sc
+    /// Stop the audio playback
+    pub fn stop_sound(&self) {
+        self.audio.pause();
+    }
 }
 
-pub fn play_sound(sound_card: &AudioDevice<SquareWave>) {
-    sound_card.resume();
-}
-
-pub fn stop_sound(sound_card: &AudioDevice<SquareWave>) {
-    sound_card.pause();
-}
-
-pub struct SquareWave {
+struct SquareWave {
     phase_inc: f32,
     phase: f32,
     volume: f32,

@@ -27,7 +27,7 @@ use chip8::cpu::CHIP8;
 use drivers::graphics_driver::GraphicsDriver;
 use drivers::keyboard_driver::KeyboardDriver;
 use drivers::rom_driver::RomDriver;
-use drivers::sound_driver;
+use drivers::sound_driver::SoundDriver;
 use gui::windows::base_window::SDLWindow;
 use native_dialog::FileDialog;
 use sdl2::Sdl;
@@ -65,9 +65,6 @@ fn main(){
         .build()
         .unwrap();
 
-    // Create soundcard
-    let sound_system = sound_driver::create_sound_card(&sdl);
-
     // Load rom into memory
     let rom_driver: RomDriver = RomDriver::new(path);
     let buffer: Vec<u8> = match rom_driver.read_rom_data() {
@@ -77,8 +74,10 @@ fn main(){
 
     let mut processor: CHIP8 = CHIP8::new();
 
+    // Create Drivers
     let keyboard_driver: KeyboardDriver = KeyboardDriver::new();
     let mut graphics_driver: GraphicsDriver = GraphicsDriver::new(processor.vram, canvas);
+    let sound_driver: SoundDriver = SoundDriver::new(&sdl);
 
     processor.load_rom_data(&buffer);
 
@@ -102,9 +101,9 @@ fn main(){
         }
 
         if processor.sound_timer > 0 {
-            sound_driver::play_sound(&sound_system);
+            sound_driver.play_sound();
         } else {
-            sound_driver::stop_sound(&sound_system);
+            sound_driver.stop_sound();
         }
 
         processor.tick();
