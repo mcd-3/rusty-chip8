@@ -7,6 +7,7 @@ impl KeyboardDriver {
         KeyboardDriver{}
     }
 
+    /// Returns a mapped CHIP-8 key based on what keyboard key is tapped
     pub fn keyboard_to_keypad(&self, key: Keycode) -> Option<u8> {
         match key {
             Keycode::Num1 => Some(0x1),

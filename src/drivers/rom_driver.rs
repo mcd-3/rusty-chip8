@@ -12,6 +12,7 @@ impl RomDriver {
         }
     }
 
+    /// Reads a ROM file into memory
     pub fn read_rom_data(&self) -> Result<Vec<u8>, std::io::Error> {
         if cfg!(debug_assertions) {
             let fp: String = self.file_path
