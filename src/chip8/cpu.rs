@@ -1,6 +1,5 @@
-use crate::chip8::op_code_variable_util::{get_byte, get_nibble, get_nnn, get_x, get_y};
 use crate::debug::debugger::Debugger;
-use super::{font::FONT_SET, op_code_variable_util::split_op_code};
+use super::{font::FONT_SET, op_code::OpCode};
 
 use rand;
 use rand::Rng;
@@ -100,10 +99,10 @@ impl CHIP8 {
     }
 
     /// Get the current instruction and increase program counter to the next instruction
-    fn run_instruction(&mut self, op_code: u16) {
-        Debugger::dprint_opcode(String::from("[INSTRUCTION]: "), op_code);
+    fn run_instruction(&mut self, op_code: &OpCode) {
+        Debugger::dprint_opcode(String::from("[INSTRUCTION]: "), op_code.get_instruction());
 
-        match split_op_code(op_code) {
+        match op_code.split_op_code() {
             (0x0, 0x0, 0xE, 0x0) => {
                 // 00E0 - CLS
                 // Clear the display
@@ -121,19 +120,19 @@ impl CHIP8 {
             (0x1, _, _, _) => {
                 // 1nnn - JP addr
                 // Jump to location nnn
-                let nnn: u16 = get_nnn(op_code);
+                let nnn: u16 = op_code.get_nnn();
                 self.jump_to_instruction(nnn);
             }
             (0x2, _, _, _) => {
                 // 2nnn - CALL addr
                 // Call subroutine at nnn
-                let nnn = get_nnn(op_code);
+                let nnn = op_code.get_nnn();
                 self.stack_push(self.pc);
                 self.jump_to_instruction(nnn);
             }
             (0x3, _, _, _) => {
-                let x: usize = get_x(op_code) as usize;
-                let kk: u8 = get_byte(op_code) as u8;
+                let x: usize = op_code.get_x() as usize;
+                let kk: u8 = op_code.get_byte() as u8;
 
                 if self.v[x] == kk {
                     self.skip_instruction();
@@ -144,8 +143,8 @@ impl CHIP8 {
             (0x4, _, _, _) => {
                 // 4xkk - SNE Vx, byte
                 // Skip next instruction if Vx != kk
-                let x = get_x(op_code);
-                let kk = get_byte(op_code);
+                let x = op_code.get_x();
+                let kk = op_code.get_byte();
                 if self.v[x as usize] != kk as u8 {
                     self.skip_instruction();
                 } else {
@@ -155,8 +154,8 @@ impl CHIP8 {
             (0x5, _, _, 0x0) => {
                 // 5xy0 - SE Vx, Vy
                 // Skip next instruction if Vx = Vy.
-                let x: usize = get_x(op_code) as usize;
-                let y: usize = get_y(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
+                let y: usize = op_code.get_y() as usize;
                 if self.v[x] == self.v[y] {
                     self.skip_instruction();
                 } else {
@@ -166,14 +165,14 @@ impl CHIP8 {
             (0x6, _, _, _) => {
                 // 6xkk - LD Vx, byte
                 // Set Vx = kk
-                self.v[get_x(op_code) as usize] = get_byte(op_code) as u8;
+                self.v[op_code.get_x() as usize] = op_code.get_byte() as u8;
                 self.next_instruction();
             }
             (0x7, _, _, _) => {
                 // 7xkk - ADD Vx, byte
                 // Set Vx = Vx + kk
-                let x: u16 = get_x(op_code) as u16;
-                let kk: u16 = get_byte(op_code) as u16;
+                let x: u16 = op_code.get_x() as u16;
+                let kk: u16 = op_code.get_byte() as u16;
 
                 let total: u16 = (self.v[x as usize] as u16) + (kk as u16);
                 self.v[x as usize] = total as u8;
@@ -183,16 +182,16 @@ impl CHIP8 {
             (0x8, _, _, 0x0) => {
                 // 8xy0 - LD Vx, Vy
                 // Set Vx = Vy
-                let x = get_x(op_code);
-                let y = get_y(op_code);
+                let x = op_code.get_x();
+                let y = op_code.get_y();
                 self.v[x as usize] = self.v[y as usize];
                 self.next_instruction();
             }
             (0x8, _, _, 0x1) => {
                 // 8xy1 - OR Vx, Vy
                 // Set Vx = Vx OR Vy.
-                let x: usize = get_x(op_code) as usize;
-                let y: usize = get_y(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
+                let y: usize = op_code.get_y() as usize;
                 self.v[x] |= self.v[y];
 
                 // The original COSMAC VIP machine cleared VF
@@ -202,8 +201,8 @@ impl CHIP8 {
             (0x8, _, _, 0x2) => {
                 // 8xy2 - AND Vx, Vy
                 // Set Vx = Vx AND Vy.
-                let x: usize = get_x(op_code) as usize;
-                let y: usize = get_y(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
+                let y: usize = op_code.get_y() as usize;
                 self.v[x] &= self.v[y];
 
                 // The original COSMAC VIP machine cleared VF
@@ -213,8 +212,8 @@ impl CHIP8 {
             (0x8, _, _, 0x3) => {
                 // 8xy3 - XOR Vx, Vy
                 // Set Vx = Vx XOR Vy.
-                let x: usize = get_x(op_code) as usize;
-                let y: usize = get_y(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
+                let y: usize = op_code.get_y() as usize;
                 self.v[x] ^= self.v[y];
 
                 // The original COSMAC VIP machine cleared VF
@@ -224,8 +223,8 @@ impl CHIP8 {
             (0x8, _, _, 0x4) => {
                 // 8xy4 - ADD Vx, Vy
                 // Set Vx = Vx + Vy, set VF = carry
-                let x: usize = get_x(op_code) as usize;
-                let y: usize = get_y(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
+                let y: usize = op_code.get_y() as usize;
                 let total: u16 = self.v[x] as u16 + self.v[y] as u16;
                 self.v[x] = total as u8;
                 self.v[0x0f] = if total > 0xFF { 1 } else { 0 };
@@ -235,8 +234,8 @@ impl CHIP8 {
             (0x8, _, _, 0x5) => {
                 // 8xy5 - SUB Vx, Vy
                 // Set Vx = Vx - Vy, set VF = NOT borrow
-                let x: usize = get_x(op_code) as usize;
-                let y: usize = get_y(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
+                let y: usize = op_code.get_y() as usize;
                 let (vx, borrow) = self.v[x].overflowing_sub(self.v[y]);
 
                 self.v[x] = vx;
@@ -252,8 +251,8 @@ impl CHIP8 {
             (0x8, _, _, 0x6) => {
                 // 8xy6 - SHR Vx {, Vy}
                 // Set Vx = Vx SHR 1.
-                let x: usize = get_x(op_code) as usize;
-                let y: usize = get_y(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
+                let y: usize = op_code.get_y() as usize;
 
                 // The original COSMAC VIP machine set VX to VY
                 // This instruction is ignored in Super-CHIP and Chip-48
@@ -268,8 +267,8 @@ impl CHIP8 {
             (0x8, _, _, 0x7) => {
                 // 8xy7 - SUBN Vx, Vy
                 // Set Vx = Vy - Vx, set VF = NOT borrow.
-                let x: usize = get_x(op_code) as usize;
-                let y: usize = get_y(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
+                let y: usize = op_code.get_y() as usize;
                 self.v[x] = self.v[y].wrapping_sub(self.v[x]);
 
                 if self.v[y] > self.v[x] {
@@ -283,8 +282,8 @@ impl CHIP8 {
             (0x8, _, _, 0xE) => {
                 // 8xyE - SHL Vx {, Vy}
                 // Set Vx = Vx SHL 1.
-                let x: usize = get_x(op_code) as usize;
-                let y: usize = get_y(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
+                let y: usize = op_code.get_y() as usize;
 
                 // The original COSMAC VIP machine set VX to VY
                 // This instruction is ignored in Super-CHIP and Chip-48
@@ -299,8 +298,8 @@ impl CHIP8 {
             (0x9, _, _, 0x0) => {
                 // 9xy0 - SNE Vx, Vy
                 // Skip next instruction if Vx != Vy.
-                let x: u16 = get_x(op_code);
-                let y: u16 = get_y(op_code);
+                let x: u16 = op_code.get_x();
+                let y: u16 = op_code.get_y();
                 if self.v[x as usize] != self.v[y as usize] {
                     self.skip_instruction();
                 } else {
@@ -310,20 +309,20 @@ impl CHIP8 {
             (0xA, _, _, _) => {
                 // Annn - LD I, addr
                 // Set I = nnn
-                self.i = get_nnn(op_code);
+                self.i = op_code.get_nnn();
                 self.next_instruction();
             }
             (0xB, _, _, _) => {
                 // Bnnn - JP V0, addr
                 // Jump to location nnn + V0.
-                let nnn: u16 = get_nnn(op_code);
+                let nnn: u16 = op_code.get_nnn();
                 self.jump_to_instruction(nnn + self.v[0] as u16)
             }
             (0xC, _, _, _) => {
                 // Cxkk - RND Vx, byte
                 // Set Vx = random byte AND kk
-                let kk: u8 = get_byte(op_code) as u8;
-                let x: u16 = get_x(op_code);
+                let kk: u8 = op_code.get_byte() as u8;
+                let x: u16 = op_code.get_x();
                 let random_number: u8 = rand::thread_rng().gen_range(0..255);
                 self.v[x as usize] = random_number & kk;
                 self.next_instruction();
@@ -331,9 +330,9 @@ impl CHIP8 {
             (0xD, _, _, _) => {
                 // Dxyn - DRW Vx, Vy, nibble
                 // Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
-                let x: u16 = get_x(op_code);
-                let y: u16 = get_y(op_code);
-                let nibble: u16 = get_nibble(op_code);
+                let x: u16 = op_code.get_x();
+                let y: u16 = op_code.get_y();
+                let nibble: u16 = op_code.get_nibble();
 
                 let vx = self.v[x as usize] as u16;
                 let vy = self.v[y as usize] as u16;
@@ -375,7 +374,7 @@ impl CHIP8 {
             (0xE, _, 0x9, 0xE) => {
                 // Ex9E - SKP Vx
                 // Skip next instruction if key with the value of Vx is pressed
-                let x: usize = get_x(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
                 if self.keys[self.v[x] as usize] {
                     self.skip_instruction();
                 } else {
@@ -385,7 +384,7 @@ impl CHIP8 {
             (0xE, _, 0xA, 0x1) => {
                 // ExA1 - SKNP Vx
                 // Skip next instruction if key with the value of Vx is not pressed
-                let x: usize = get_x(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
                 if !self.keys[self.v[x] as usize] {
                     self.skip_instruction();
                 } else {
@@ -395,14 +394,14 @@ impl CHIP8 {
             (0xF, _, 0x0, 0x7) => {
                 // Fx07 - LD Vx, DT
                 // Set Vx = delay timer value
-                let x: u16 = get_x(op_code);
+                let x: u16 = op_code.get_x();
                 self.v[x as usize] = self.delay_timer;
                 self.next_instruction();
             }
             (0xF, _, 0x0, 0xA) => {
                 // Fx0A - LD Vx, K
                 // Wait for a key press, store the value of the key in Vx.
-                let x: usize = get_x(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
                 let mut is_pressed = false;
                 for (i, key) in self.keys.iter().enumerate() {
                     if *key {
@@ -419,35 +418,35 @@ impl CHIP8 {
             (0xF, _, 0x1, 0x5) => {
                 // Fx15 - LD DT, Vx
                 // Set delay timer = Vx
-                let x: u16 = get_x(op_code);
+                let x: u16 = op_code.get_x();
                 self.delay_timer = self.v[x as usize];
                 self.next_instruction();
             }
             (0xF, _, 0x1, 0x8) => {
                 // Fx18 - LD ST, Vx
                 // Set sound timer = Vx.
-                let x: u16 = get_x(op_code);
+                let x: u16 = op_code.get_x();
                 self.sound_timer = self.v[x as usize];
                 self.next_instruction();
             }
             (0xF, _, 0x1, 0xE) => {
                 // Fx1E - ADD I, Vx
                 // Set I = I + Vx
-                let x: u16 = get_x(op_code);
+                let x: u16 = op_code.get_x();
                 self.i = self.i + self.v[x as usize] as u16;
                 self.next_instruction();
             }
             (0xF, _, 0x2, 0x9) => {
                 // Fx29 - LD F, Vx
                 // Set I = location of sprite for digit Vx.
-                let x: usize = get_x(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
                 self.i = (self.v[x] * SPRITE_LENGTH) as u16;
                 self.next_instruction();
             }
             (0xF, _, 0x3, 0x3) => {
                 // Fx33 - LD B, Vx
                 // Store BCD representation of Vx in memory locations I, I+1, and I+2.
-                let x: usize = get_x(op_code) as usize;
+                let x: usize = op_code.get_x() as usize;
                 let i: usize = self.i as usize;
                 self.ram[i] = self.v[x] / 100;
                 self.ram[i + 1] = (self.v[x] % 100) / 10;
@@ -457,7 +456,7 @@ impl CHIP8 {
             (0xF, _, 0x5, 0x5) => {
                 // Fx55 - LD [I], Vx
                 // Store registers V0 through Vx in memory starting at location I.
-                let x: u16 = get_x(op_code);
+                let x: u16 = op_code.get_x();
                 for index in 0..=x {
                     self.ram[(self.i + index) as usize] = self.v[index as usize];
                 }
@@ -469,7 +468,7 @@ impl CHIP8 {
             (0xF, _, 0x6, 0x5) => {
                 // Fx65 - LD Vx, [I]
                 // Read registers V0 through Vx from memory starting at location I.
-                let x: u16 = get_x(op_code);
+                let x: u16 = op_code.get_x();
                 for register in 0..=x {
                     self.v[register as usize] = self.ram[(self.i + register) as usize];
                 }
@@ -561,8 +560,9 @@ impl CHIP8 {
         frame_limit: u16
     ) {
         for _i in 0..frame_limit {
-            let op_code: u16 = self.get_op_code();
-            self.run_instruction(op_code);
+            let op_code_value: u16 = self.get_op_code();
+            let op_code: OpCode = OpCode::new(op_code_value);
+            self.run_instruction(&op_code);
         }
     }
 }
