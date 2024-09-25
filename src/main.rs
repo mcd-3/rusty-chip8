@@ -24,7 +24,7 @@ pub mod debug {
 }
 
 use chip8::cpu::CHIP8;
-use drivers::graphics_driver::draw_to_screen;
+use drivers::graphics_driver::GraphicsDriver;
 use drivers::keyboard_driver::KeyboardDriver;
 use drivers::rom_driver::RomDriver;
 use drivers::sound_driver;
@@ -60,7 +60,7 @@ fn main(){
     };
 
     // Create canvas
-    let mut canvas : Canvas<Window> = window.window.into_canvas()
+    let canvas : Canvas<Window> = window.window.into_canvas()
         // .present_vsync()
         .build()
         .unwrap();
@@ -75,9 +75,10 @@ fn main(){
         Err(e) => panic!("{}", e)
     };
 
-    let keyboard_driver: KeyboardDriver = KeyboardDriver::new();
-
     let mut processor: CHIP8 = CHIP8::new();
+
+    let keyboard_driver: KeyboardDriver = KeyboardDriver::new();
+    let mut graphics_driver: GraphicsDriver = GraphicsDriver::new(processor.vram, canvas);
 
     processor.load_rom_data(&buffer);
 
@@ -107,6 +108,7 @@ fn main(){
         }
 
         processor.tick();
-        draw_to_screen(processor.vram, &mut canvas);
+        graphics_driver.update_vram(processor.vram);
+        graphics_driver.draw_to_screen();
     }
 }
