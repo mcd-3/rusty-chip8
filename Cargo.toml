@@ -1,11 +1,28 @@
 [package]
-name = "rusty-chip8"
-version = "0.1.0"
-edition = "2018"
+name = "RustyCHIP8"
+version = "0.8.0"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[package.metadata.bundle]
+name = "RustyCHIP8"
+identifier = "com.mcd3.rustychip8"
+icon = ["assets/rc8_logo.png"]
+version = "0.8.0"
+resources = ["./assets/"]
+copyright = "Copyright (c) Matthew Carvalho-Dagenais 2024. All rights reserved."
+category = "Games"
+short_description = "A CHIP-8 emulator written in Rust"
+long_description = """
+A CHIP-8 emulator written in Rust. Focused on simplicity and accuracy.
+
+All ROM files must be legally sourced. Authors of this program do not provide any ROM files.
+"""
+osx_frameworks = ["./lib/SDL2.framework"]
+osx_url_schemes = ["com.mcd3.rustychip8"]
+
 [dependencies]
 rand = "0.8.5"
-sdl2 = "0.36"
+sdl2 = "0.37"
 native-dialog = "0.7.0"
