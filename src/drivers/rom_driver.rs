@@ -6,10 +6,10 @@ pub struct RomDriver {
 }
 
 impl RomDriver {
-    pub fn new(file_path: PathBuf) -> Self {
-        RomDriver {
+    pub fn new(file_path: PathBuf) -> Result<Self, &'static str> {
+        Ok(RomDriver {
             file_path
-        }
+        })
     }
 
     /// Reads a ROM file into memory

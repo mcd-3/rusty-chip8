@@ -6,7 +6,7 @@ pub struct SoundDriver {
 }
 
 impl SoundDriver {
-    pub fn new(sdl: &Sdl) -> Self {
+    pub fn new(sdl: &Sdl) -> Result<Self, &'static str> {
         let audio: AudioSubsystem = sdl.audio().unwrap();
     
         let spec: AudioSpecDesired = AudioSpecDesired {
@@ -23,9 +23,9 @@ impl SoundDriver {
             }
         }).unwrap();
 
-        SoundDriver {
+        Ok(SoundDriver {
             audio: sc
-        }
+        })
     }
     
     /// Start the audio playback

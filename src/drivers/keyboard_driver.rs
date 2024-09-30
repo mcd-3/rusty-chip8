@@ -3,8 +3,8 @@ use sdl2::keyboard::Keycode;
 pub struct KeyboardDriver { }
 
 impl KeyboardDriver {
-    pub fn new() -> Self {
-        KeyboardDriver{}
+    pub fn new() -> Result<Self, &'static str> {
+        Ok(KeyboardDriver{})
     }
 
     /// Returns a mapped CHIP-8 key based on what keyboard key is tapped

@@ -6,11 +6,11 @@ pub struct GraphicsDriver {
 }
 
 impl GraphicsDriver {
-    pub fn new(vram: [u8; 2048], canvas: Canvas<Window>) -> Self {
-        GraphicsDriver {
+    pub fn new(vram: [u8; 2048], canvas: Canvas<Window>) -> Result<Self, &'static str>{
+        Ok(GraphicsDriver {
             vram,
             canvas
-        }
+        })
     }
 
     /// Update the data in the vram

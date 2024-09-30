@@ -66,7 +66,7 @@ fn main(){
         .unwrap();
 
     // Load rom into memory
-    let rom_driver: RomDriver = RomDriver::new(path);
+    let rom_driver: RomDriver = RomDriver::new(path).unwrap();
     let buffer: Vec<u8> = match rom_driver.read_rom_data() {
         Ok(path) => path,
         Err(e) => panic!("{}", e)
@@ -75,9 +75,9 @@ fn main(){
     let mut processor: CHIP8 = CHIP8::new();
 
     // Create Drivers
-    let keyboard_driver: KeyboardDriver = KeyboardDriver::new();
-    let mut graphics_driver: GraphicsDriver = GraphicsDriver::new(processor.vram, canvas);
-    let sound_driver: SoundDriver = SoundDriver::new(&sdl);
+    let keyboard_driver: KeyboardDriver = KeyboardDriver::new().unwrap();
+    let mut graphics_driver: GraphicsDriver = GraphicsDriver::new(processor.vram, canvas).unwrap();
+    let sound_driver: SoundDriver = SoundDriver::new(&sdl).unwrap();
 
     processor.load_rom_data(&buffer);
 
