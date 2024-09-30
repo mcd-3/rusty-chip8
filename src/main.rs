@@ -40,7 +40,7 @@ fn main(){
     // We need to declare SDL first before the file dialog
     // This way we can capture keystrokes
     let sdl: Sdl = sdl2::init().unwrap();
-    let main_window_title: String = String::from("CHIP-8 Emulator");
+    let main_window_title: String = String::from("Rusty CHIP-8");
     let mut window: SDLWindow = SDLWindow::new(
         &sdl,
         725,
